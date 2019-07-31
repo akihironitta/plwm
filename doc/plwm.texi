@@ -1,0 +1,2574 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename plwm.info
+@settitle PLWM -- The Pointless Window Manager
+@c @setchapternewpage odd
+@c %**end of header
+
+@dircategory Window Managers
+@direntry
+* PLWM: (plwm).           The Pointless Window Manager
+@end direntry
+
+@ifinfo
+This file documents the Python window manager PLWM.
+
+Copyright 1999-2002  Peter Liljenberg
+
+Permission is granted to make and distribute verbatim
+copies of this manual provided the copyright notice and
+this permission notice are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX
+and print the results, provided the printed document
+carries a copying permission notice identical to this
+one except for the removal of this paragraph (this
+paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified
+versions of this manual under the conditions for
+verbatim copying, provided also that the sections
+entitled ``Copying'' and ``GNU General Public License''
+are included exactly as in the original, and provided
+that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this
+one.
+
+Permission is granted to copy and distribute
+translations of this manual into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@title PLWM -- The Pointless Window Manager
+@author Peter Liljenberg
+
+@c  The following two commands
+@c  start the copyright page.
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1999-2002  Peter Liljenberg
+
+Permission is granted to make and distribute verbatim
+copies of this manual provided the copyright notice and
+this permission notice are preserved on all copies.
+
+Permission is granted to copy and distribute modified
+versions of this manual under the conditions for
+verbatim copying, provided also that the sections
+entitled ``Copying'' and ``GNU General Public License''
+are included exactly as in the original, and provided
+that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this
+one.
+
+Permission is granted to copy and distribute
+translations of this manual into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+@end titlepage
+
+@contents
+
+@node Top
+@top Introduction
+
+@sc{plwm}, The Pointless Window Manager, is a collection of window manager
+primitives written in Python.
+
+If you are just interested in running @sc{plwm} you should at least read
+the chapter on the underlying philosophy, take a look at the chapter on
+running @sc{plwm} and have @code{README.examplewm} at hand.
+
+If you are interested in really using @sc{plwm} it is recommended, even
+required, to read the rest of the manual.
+
+@menu
+* Philosophy::         Why, oh why?
+* Running PLWM::       Hints and a sample .xinitrc.
+* Configuration::      Configuring @sc{plwm}.
+* Core Classes::       The PLWM kernel.
+* Event Handling::     How to respond to stimuli.
+* Core Events::        Internal events.
+* Client Filters::     Selecting clients.
+* Extension Modules::  Tasty features.
+* Utilities::          Useful X programs.
+* ToDo::               Wouldn't it be nice if...
+* Credits::            Whodunnit?
+* Contact Info::       Email and WWW addresses.
+@end menu
+
+
+@node Philosophy
+@chapter Philosophy and Excuses
+
+@sc{plwm} is not a normal window manager, in fact, it isn't a window
+manager at all.  Instead it is a collection of Python classes which you
+can use to build your own window manager.  You can include the existing
+features you like and easily write your own extensions to make your
+@sc{plwm} behave exactly as you want it to.  Eventually, you will have a
+perfect symbiosis of user and window manager, you and the computer will
+be a beautiful Mensch-Maschine!
+
+One of the basic ideas is that the mouse should be banished, and
+everything should be possible to do without moving your hands from the
+keyboard.  This is the pointless bit of @sc{plwm}.
+
+Another of the other basic ideas is to make a window manager which is is
+pure Unix Philosophy: a bunch of simple tools which can be combined to
+build a powerful application.  The "tools" are Python classes which
+makes it easy to inherit, extend, mixin and override functionality to
+get exactly the behaviour that you want.
+
+This makes @sc{plwm} extremely configurable by sacrificing ease of
+configuration: you actually have to write some Python code to get the
+window manager exactly as you want it.  However, if you was moved by the
+first paragraph, then you're probably already a hacker and will relish
+in writing your own window manager.
+
+A typical @sc{plwm} setup might look rudimentary, even hostile, to
+people used to the glitz and glamour of more conventional window
+managers.  However, there are a lot of powerful features, making it
+really user-friendly.  Provided that the user is friendly to @sc{plwm},
+of course.
+
+
+@node Running PLWM
+@chapter Running PLWM
+
+@sc{plwm}, at least in the @code{examplewm.py} guise, is not very
+sophisticated when it comes to command line arguments.  It only groks
+three:
+
+@table @code
+@item -display
+Run @sc{plwm} against another display than @code{$DISPLAY}.
+
+@item -debug
+Enable debug messages.  The argument should be a comma-separated list of
+debug message categories, or empty, meaning enable all messages.
+
+@item -version
+Print the PLWM version.
+
+@end table
+
+
+It can be tricky at first to figure out how to have a hacking-friendly X
+setup, so here is a fragment of my @file{.xinitrc} as an example of a
+@sc{plwm} environment:
+
+@example
+#!/bin/sh
+
+# Redirect error messages to a log file.  This is where PLWM
+# tracebacks will go, so keep an eye on it.
+exec 1>$HOME/.x11startlog 2>$HOME/.x11startlog
+
+# Read resource database from file .Xdefaults
+xrdb ~/.Xdefaults
+
+# Set a solid color for the root window.  The modewindow will have the
+# same background (set with .Xdefaults) and no border, so it will appear
+# to be a part of the root.  Good enough.
+
+xsetroot -solid darkolivegreen
+
+# Desperately try to start some window manager
+# As we start it in the background it can exit without shutting down
+# the entire X server.  
+
+(plwm || ctwm || twm) &
+
+# Instead the X server is kept running by wmm, or if that fails, by
+# xlogo. To shut down the X server we kill the wmm or xlogo window.
+
+wmm || xlogo
+@end example
+
+How to configure @sc{wmm} (@pxref{wmm}) is not obvious at first either,
+so here's a @file{.wmmrc} too (notice the tabs between the columns):
+
+@example
+plwm    plwm &
+examplewm       /home/petli/hack/plwm/examples/examplewm.py &
+twm     twm &
+@end example
+
+The idea is to use a stable @sc{plwm} installed in your @code{$PATH} by
+default.  When you are about to test some freshly hacked feature or a
+bugfix, simply kill off the running @sc{plwm} (@w{C-M-Esc} in
+@code{examplewm.py}).  This will pop up the @sc{wmm} window, so click on the
+examplewm button in it to start the development version, using modules
+from @code{plwm} directories next to @code{examples}.
+
+To put the finishing touches to the configuration, we can change some
+fonts and colors with the @file{~/.Xdefaults} file:
+
+@example
+@group
+Plwm.outline.font: -*-lucida-bold-r-*-sans-20-*-*-*-*-*-*-*
+Plwm.border.color: black
+Plwm.border.focus.color: grey60
+
+Plwm.modewindow.background: darkolivegreen
+Plwm.modewindow.foreground: white
+@end group
+@end example
+
+
+@node Configuration
+@chapter Configuration
+
+Most of the configuration of @sc{plwm} is done by writing a python script
+using the various window manager modules.  @xref{Extension Modules}.
+
+However, some small parts of @sc{plwm} can be configured with X
+resources.  The various X resources are defined in the section of their
+corresponding modules.
+
+They have one thing in common though, in that they all start with the
+name component @code{plwm} and the class component @code{Plwm}.  The
+name component used in lookups will actually be the name of the window
+manager script, so if your script is called @code{foowm.py}, the
+resources looked up will be e.g. @code{foowm.border.color} instead of
+@code{plwm.border.color}.  The class component used is controlled by the
+@code{WindowManager} attribute @code{appclass}, which by default is
+@code{Plwm}.
+
+Summary: in your @file{~/.Xdefaults} or @file{~/.Xresources}, start all
+@sc{plwm} resources with @code{Plwm.}, unless you know what you're doing.
+
+
+@node Core Classes
+@chapter Core Classes
+
+If you absolutely must point to a single module and call it @sc{plwm}, then
+you should direct your attention to @code{wmanager}.  It contains three
+classes which implements the fundamental window managing and provides
+the extension framework.
+
+@vtable @asis
+
+@item WindowManager
+
+This is the central window manager class.  A @code{WindowManager}
+instance manages the windows on a single display, which is provided as
+an argument to the constructor.  @code{WindowManager} also drives the
+event handling loop.
+
+@item Screen
+
+This class takes care of catching client windows so we can manage them.
+When a @code{WindowManager} instance is created it will create a
+@code{Screen} instance for each physical screen (monitor) connected to
+the display.  Normally, an X server only have one screen, but they can
+also be multiheaded, i.e. having more than one screen.  Each screen 
+has its own root window, and all windows are therefore local to a
+certain screen and cannot move between different screens.
+
+@item Client
+
+This class manages a single window.  Instances are created when the
+@code{Screen} instance managing the screen detects that a window has
+been created.  All window operations by extensions should be done using
+methods on the @code{Client} instance managing that window.
+
+@end vtable
+
+
+This gives us the following structure: A single @code{WindowManager}
+instance manages a certain display, by managing one or more @code{Screen}
+instances which in turn manages a number of @code{Client} instances.
+
+These classes have a number of publicly available attributes, listed in
+the sections below.  Of course, all member attributes are available for
+you, but if you try to stick to the listed attributes and use the
+methods provided by the classes to manipulate windows your code will
+stand a better chance of working with future extensions.
+
+The core classes also generates some events which can be useful for
+mixins.  @xref{Core Events}.
+
+@menu
+* WindowManager Public Attributes::
+* Screen Public Attributes::
+* Client Public Attributes::
+@end menu
+
+
+@node WindowManager Public Attributes
+@section @code{WindowManager} Public Attributes
+
+@defivar WindowManager display
+A @code{Xlib.display.Display} object connecting us to the X server.
+@end defivar
+
+@defivar WindowManager events
+An @code{EventFetcher} object for this display.  @xref{Event Handling}.
+@end defivar
+
+@defivar WindowManager dispatch
+A global @code{EventDispatcher}.  @xref{Event Handling}.
+@end defivar
+
+@defivar WindowManager current_client
+@defivarx WindowManager focus_client
+
+The client currently containing the pointer and the client which has
+keyboard focus, respectivly.  Most of the time these are the same, but
+certain windows do not use input and will therefore never be focused.
+Most operations should be performed on current_client.  The
+@code{WindowManager} provides the method @code{set_current_client()} to
+change this in the proper way.  However, to implement some kind of focus
+scheme you have to use some extension class, see @ref{focus}.
+
+@end defivar
+
+@defivar WindowManager screens
+A list of the managed screens.
+@end defivar
+
+@defivar WindowManager screen_nums
+@defivarx WindowManager screen_roots
+Mappings from screen numbers or root windows to the corresponding screen
+object.
+@end defivar
+
+@defivar WindowManager default_screen
+The default screen, defined when opening the display.
+@end defivar
+
+@defivar WindowManager current_screen
+The screen currently containing the pointer.  This will be maintained by
+the screens automatically.
+@end defivar
+
+@node Screen Public Attributes 
+@section @code{Screen} Public Attributes 
+
+@defivar Screen wm
+The @code{WindowManager} which holds this screen.
+@end defivar
+
+@defivar Screen number
+The number of this screen.
+@end defivar
+
+@defivar Screen root
+The root window of this screen.
+@end defivar
+
+@defivar Screen dispatch
+The @code{EventDispatcher} for the root window.  @xref{Event Handling}.
+@end defivar
+
+@defivar Screen info
+The screen information structure, as returned by the Xlib @code{Display} method @code{screen()}.
+@end defivar
+
+
+@node Client Public Attributes
+@section @code{Client} Public Attributes
+
+@defivar Client screen
+@defivarx Client wm
+The @code{Screen} and @code{WindowManager} instances which contains this
+client.
+@end defivar
+
+@defivar Client withdrawn
+Set to true if this client has been withdrawn.  A withdrawn client
+should not be modified further, and has already been removed from the
+@code{Screen}'s list of clients. 
+@end defivar
+
+@defivar Client dispatch
+The @code{EventDispatcher} for the client window.  @xref{Event Handling}.
+@end defivar
+
+@defivar Client current
+@defivarx Client focused
+
+These attributes will be true or false to indicate whether this client
+is the current one, and if it has focus. 
+
+@end defivar
+
+
+
+@node Event Handling
+@chapter Event Handling
+
+Event handling consists of getting events and then distributing them to
+the event handlers.  In @sc{plwm} this is handled by the module
+@code{event} and its classes @code{EventFetcher} and
+@code{EventDispatcher}.  If the event loop in the @code{WindowManager}
+is the heart driving the event blood stream, @code{EventFetcher} is the
+lungs providing fresh events (the oxygene) and @code{EventDispatcher} is
+the arteries delivering the events to all the working parts of the
+window manager body.
+
+No, that analogue wasn't strictly necessary.
+
+@menu
+* Event Objects::    The blood cells, then.
+* EventFetcher::     The source of events.
+* EventDispatcher::  Making things happen with events.
+@end menu
+
+@node Event Objects
+@section Event Objects
+
+The events are Python objects, either X event objects from Python Xlib,
+or an instance of some other Python class.  The only thing required by
+the event system is that they have at least this attribute:
+
+@defivar {Event Objects} type
+
+This identifies the event type, and can be any hashable object.  For X
+events this is some integer constants defined in @code{Xlib.X}.  For
+other events this can be the event object class, a unique string, or
+anything else that is useful.  It must however be a hashable object,
+since the type is used as an index into dictionaries.
+
+@end defivar
+
+The @code{event} module provides a function for getting new, unique
+integer event types:
+
+@defun new_event_type ( )
+
+Return a new unique integer event type, which does not conflict with the
+event types of the Xlib.
+
+@end defun
+
+
+Additionally the @code{WindowManager} uses one of these attributes to
+figure out which @code{Screen} and @code{Client} that should take care
+of the event:
+
+@defivar {Event Objects} client
+A client object this event is about or for.  The @code{Screen} managing
+this client will get the event, and can then in its turn pass the event
+on to the client itself.
+@end defivar
+
+@defivar {Event Objects} window
+The window object this event is about or for.  The @code{Screen}
+managing the root window of this window will get the event.  If the window
+corresponds to a managed client, that client can also get the event.
+@end defivar
+
+@defivar {Event Objects} screen
+The screen object this event is about or for, which will get the event.
+@end defivar
+
+If the event has none of the attributes or it is for an unmanaged screen
+it will only be passed to the global event handlers.
+
+
+@node EventFetcher
+@section EventFetcher 
+
+The @code{EventFetcher} can provide events to the window manager from a
+number of sources: the X server, timers, files or the window manager
+itself.
+
+Synthetic events are generated by some code in the window manager,
+typically as an abstraction of some user input.  As an example, the
+@code{focus} module generates @code{ClientFocusOut} and
+@code{ClientFocusIn} events when the focus change, which it can do as an
+effect of an @code{X.EnterNotify} event, or a call to
+@code{focus.move_focus}.  Synthetic events have precedence over all
+other event types.
+
+@defmethod EventFetcher put_event ( event )
+
+Insert a synthetic event object.  Synthetic events are always returned
+before any timer or X events, in FIFO order.
+
+@end defmethod
+
+
+Timer events are used to do something at a later time.  The @code{keys}
+module uses it to implement a time-out on keyboard grabs, and the
+@code{mw_clock} module uses it to update a clock display once a minute.
+Timer events are represented by @code{TimerEvent} objects, and have
+precedence over file and X events.  A timer event object is not
+reusable, so if something should be done periodically, a new timer event
+will have to be rescheduled whenever the previous one expires.
+
+@defmethod EventFetcher add_timer ( timer )
+
+Add the @code{TimerEvent} object @var{timer} to the list of timers.  The
+expiration time of the event is specified when creating the timer
+event.  The event will be returned when the timer expires unless it is
+cancelled before that.  
+
+@end defmethod
+
+@deffn Class TimerEvent ( event_type, after = 0, at = 0 )
+
+Create a a timer event that will expire either at a relative time,
+set with @var{after}, or at a specific time, set with @var{at}.
+Times are measured in seconds as in the @code{time} module, and can be
+integers or floating point values.
+
+Timer events are identified by its @code{type} member, which are
+specified with the @var{event_type} argument.
+
+@defmethod TimerEvent cancel ( )
+
+Cancel this timer event, if it hasn't expired yet.
+
+@end defmethod
+
+@end deffn
+
+
+File events can be used to handle non-blocking I/O.  They are generated
+when some file is ready for reading or writing, and is typically used
+for network services, e.g. by the @code{inspect} module.  File events
+are represented by @code{FileEvent} objects, which remain on the list of
+watched files until they are explicitly cancelled.  File events have the
+lowest priority, and are preceeded by X events.
+
+@defmethod EventFetcher add_file ( file )
+
+Add the @code{FileEvent} object @var{file} to the list of watched files.
+It will be returned whenever its file is ready for the choosen I/O
+operation.
+
+@end defmethod
+
+@deffn Class FileEvent ( event_type, file, mode = None )
+
+Create a file event wathing @var{file}, which could be any object with a
+@code{fileno()} method.  The event is identified by @var{event_type}.
+
+@var{mode} is the types of I/O that the caller is interested in, and
+should be a bitmask of the flags @code{FileEvent.READ},
+@code{FileEvent.WRITE}, or @code{FileEvent.EXCEPTION}.  If @var{mode} is
+@code{None}, the @code{mode} attribute of @var{file}, as specified to
+the @code{open()} call, will be used instead.
+
+@defivar FileEvent state
+
+When a file event is returned by the event loop, this attribute will be
+set to a mask of the I/O modes that the file is ready to perform, a
+subset of the modes waited for.
+
+If @code{FileEvent.READ} is set, at least one byte can be read from the
+file without blocking.  If @code{FileEvent.WRITE} is set, at least one
+byte can be written to the file without blocking.  If
+@code{FileEvent.EXCEPTION} is set, some exceptional I/O has occured,
+e.g. out-of-band data on a TCP socket.
+
+@end defivar
+
+@defmethod FileEvent set_mode ( newmode = None, set = 0, @w{clear = 0} )
+
+Change the I/O modes waited for.  If @var{newmode} is not @code{None},
+the mode will be reset to @var{newmode}, otherwise the old mode will be
+modifed.  Then the flags in the bitmask @var{set} will be added, and the
+flags in @var{clear} will be removed, in that order.
+
+@end defmethod
+
+@defmethod FileEvent cancel ( )
+
+Cancel this file event, removing it from the list of watched files.
+
+@end defmethod
+
+@end deffn
+
+
+@node EventDispatcher
+@section EventDispatcher
+
+Each @code{Screen} and @code{Client} has an @code{EventDispatcher}
+connected to their root window or client window, respectivly.
+Additionally, the @code{WindowManager} has an @code{EventDispatcher}
+which is connected to all the root windows (through the dispatchers of
+each @code{Screen}).
+
+An event is passed to the event handling functions which have been
+registered for that particular event type.  There are three levels of
+event handlers in a dispatcher:
+
+@table @asis
+@item System Handlers
+
+System handlers will always be called, even if grab handlers are
+installed.  They will be called before the other types of handlers in
+this dispatcher.  They are primarily meant to be used by the core
+classes.
+
+@item Grab Handlers
+
+Grab handlers override previously installed grab handlers and all normal
+handlers, but not system handlers.
+
+@item Normal Handlers
+
+Normal handlers are the most useful type of handlers for extension
+modules.  They will be called only if there are no grab handlers
+installed for this event type.
+
+@end table
+
+
+First of all the handlers in the global dispatcher are called.  Then, if
+the event can be associated with a managed screen through its
+@code{client}, @code{window}, or @code{screen} attributes the handlers
+in the dispatcher for that screen are called.  Finally, if the event is
+for a managed window the handlers in the dispatcher for that client are
+called.
+
+Grab handlers do not interfere with the dispatcher sequence directly,
+but a grab handler do block grab handlers and normal handlers in later
+dispatchers.  System handler are always called, though.
+
+An example:  Assume that an event for a managed client has been fetched
+and is about to be passed through the dispatchers.  The matching event
+handlers are the following: in the global dispatcher one system handler and two
+normal handlers, in the screen dispatcher a grab handler and one normal
+handler, and in the client dispatcher one system handler, one grab
+handler and one normal handler.  The handlers will be called in this
+order: global system, global normals, screen grab, client system.  The
+screen normal, client grab and normal handlers will be ignored because
+of the grab handler in the screen.
+
+
+Handlers are registered with one of these methods:
+
+@defmethod EventDispatcher add_handler ( type, handler, [ masks = None ], [ handler_id = None ] )
+@defmethodx EventDispatcher add_grab_handler ( type, handler, [ masks = None ], [ handler_id = None ] )
+@defmethodx EventDispatcher add_system_handler ( type, handler, [ masks = None ], [ handler_id = None ] )
+
+Add a handler for @var{type} events.  @var{handler} is a function which
+will get one argument, the event object.
+
+If @var{masks} is omitted or None the default X event masks for the
+event type will be set for the @code{EventDispatcher}'s window.
+Otherwise it should be an event mask or a list or tuple of event masks
+to set.
+
+@var{handler_id} identifies this handler, and defaults to the
+@var{handler} itself if not provided.
+
+@end defmethod
+
+@defmethod EventDispatcher remove_handler ( handler_id ) 
+
+Remove the handler or handlers identified by @var{handler_id}.  This
+will also clear the masks the handlers had installed.
+
+@end defmethod
+
+Event masks can also be handled manually when necessary.  All event
+masks keep a reference count, so calls to the following functions nest
+neatly.
+
+@defmethod EventDispatcher set_masks ( masks )
+
+Set @var{masks} on the window, without installing any handlers.
+@var{masks} should be an event mask or a list or tuple of event masks to
+set.
+
+@end defmethod
+
+@defmethod EventDispatcher unset_masks ( masks )
+
+Clear @var{masks} on the window.  @var{masks} should be an event mask or
+a list or tuple of event masks to set.
+
+@end defmethod
+
+@defmethod EventDispatcher block_masks ( masks )
+
+Block @var{masks} on the window.  This will prevent any matching X
+events to be generated on the window until a matching unblock_masks.
+@var{masks} should be an event mask or a list or tuple of event masks to
+set.
+
+@end defmethod
+
+@defmethod EventDispatcher unblock_masks ( masks )
+
+Unblock @var{masks} on the window, allowing the matching X events to be
+generated.  @var{masks} should be an event mask or a list or tuple of
+event masks to set.
+
+@end defmethod
+
+
+@node Core Events
+@chapter Core Events
+
+The core classes can generate a number of internal events.  Mostly,
+these are a result of some X event or user activity.  All of these
+events are defined in the module @code{plwm.wmevents}.
+
+@deftp Event AddClient
+
+Generated when a client is added.  The added client is identified by the
+event object attribute @code{client}.
+
+@end deftp
+
+
+@deftp Event RemoveClient
+
+Generated when a client is removed (withdrawn).  The removed client is
+identified by the event object attribute @code{client}.
+
+@end deftp
+
+
+@deftp Event QuitWindowManager
+
+Generated when the window manager event loop is exited by calling
+@code{WindowManager.quit}.  
+
+@end deftp
+
+
+@deftp Event CurrentClientChange
+
+Generated when a new client is made current.  The event object has two
+attributes: @code{client} is the new client, or @code{None} if no client
+is current now.  @code{screen} is the screen of the previous current
+client, or @code{None} if no client was current previously.
+
+@end deftp
+
+
+@deftp Event ClientFocusOut
+
+Generated when a client loses focus.  The event object attribute
+@code{client} is the now unfocused client.
+
+@end deftp
+
+
+@deftp Event ClientFocusIn
+
+Generated when a client gets focus.  The event object attribute
+@code{client} is the now focused client.
+
+@end deftp
+
+
+@node Client Filters
+@chapter Client Filters
+
+The module @code{plwm.cfilter} defines a number of client filters.
+These filters can be called with a client as an argument, and returns
+true if the client matches the filter, or false otherwise.  Extension
+modules can then provide customization with client filters, allowing the
+user to give certain clients special treatment.
+
+Currently, the following filters are defined:
+
+@deffn Filter true
+@deffnx Filter all
+
+These filters are true for all clients.
+
+@end deffn
+
+@deffn Filter false
+@deffnx Filter none
+
+These filters are false for all clients.
+
+@end deffn
+
+@deffn Filter is_client
+
+True if the object is a @code{wmanager.Client} instance.
+
+@end deffn
+
+@deffn Filter iconified
+
+True if the client is iconified.
+
+@end deffn
+
+@deffn Filter mapped
+
+True if the client is mapped, the opposite of iconified.
+
+@end deffn
+
+@deffn Filter name ( string )
+@deffnx Filter re_name ( regexp )
+@deffnx Filter glob_name ( pattern )
+
+These filters are true if the client resource name or class is exactly
+@var{STRING}, or matches the regular expression @var{regexp} or the
+glob pattern @var{pattern}.
+
+@end deffn
+
+@deffn Filter title ( string )
+@deffnx Filter re_title ( regexp )
+@deffnx Filter glob_title ( pattern )
+
+These filters are similar to the name filters above, but matches the
+client title instead.
+
+@end deffn
+
+These basic filters can then be assembled into larger, more complex
+filters using the following logical operations:
+
+@deffn Filter And ( filter1, filter2, ..., filterN )
+
+True if all of the subfilters are true.
+
+@end deffn
+
+@deffn Filter Or ( filter1, filter2, ..., filterN )
+
+True if at least one of the subfilters is true.
+
+@end deffn
+
+@deffn Filter Not ( filter )
+
+True if @var{filter} is false.
+
+@end deffn
+
+Here are some examples of compound filters:
+
+@example
+# Match any client that isn't an Emacs
+
+Not(name('Emacs'))
+
+
+# Match an iconified xterm:
+
+And(iconified, name('XTerm'))
+
+
+# Match an xterm with a root shell (provided that the shell
+# prompt sets a useful xterm title)
+
+And(name('XTerm'), re_title(r'\[root@.*\]'))
+@end example
+
+
+@node Extension Modules
+@chapter Extension Modules
+
+To actually get a useful window manager one must extend the core classes
+(@pxref{Core Classes}) with various extension classes.  Extension
+classes take the form of mixin classes, i.e. we just inherit it with the
+corresponding core class.  They will add methods to the core class, and
+can usually be configured with class attributes.
+
+For example, to create a client which highlights the window border when
+it is focused one could use this fragment:
+
+@example
+
+class MyClient(wmanager.Client, border.BorderClient):
+    pass
+
+@end example
+
+Because of the mixin technique, we need some ground rules for naming
+schemes, configuration and initialization.  Finally some extension
+modules are described in detail.  For full extension examples, look in
+the directory @code{examples} in the distribution tree.
+
+@menu
+* Extension Coding Conventions::      How not to trample on each other's feet.
+* Extension Classes Initialization::  Mixin initialization methods.
+* Available Extension Modules::       What have already been written?
+@end menu
+
+
+@node Extension Coding Conventions
+@section Extension Coding Conventions
+
+Extension classes will need their own member variables and methods, and
+to avoid classes overwriting the attributes of other classes the
+following naming scheme should be used:
+
+@itemize @bullet
+@item
+Each extension module should select a prefix, typically the same as the
+module name unless that it very unwieldy.
+
+@item
+All member variables and methods used and defined by an extension class
+should begin with the prefix.
+
+@item
+An exception:  methods are allowed to begin with @code{get_} or
+@code{set_} followed by the prefix.
+@end itemize
+
+
+@node Extension Classes Initialization
+@section Extension Classes Initialization
+
+Extension classes must be able to initialize themselves.  To make this
+easy the core classes provide some special initializing functions for
+extension classes.  Extension classes should only use these, they must
+not use the normal Python initialization funktion @code{__init__}.
+
+When extending a core class by subclassing it together with a number of
+extension classes, the core class should be the first base class.  The
+extension classes may have to be ordered among themselves too.
+
+When an extended core class is initialized it will traverse the class
+inheritance tree. When an extension initialization function is found it
+is called without any arguments except for the object itself.  As soon
+as an extension initialization function is found in a base class, its
+base classes will not be traversed.
+
+@code{WindowManager} provides two extension initialization functions:
+@ftable @code
+@item __wm_screen_init__
+Called after the display is opened, but before any screens are added.
+
+@item __wm_init__
+Called after all the screens have been added, i.e. as the very last
+thing during the initialization of the window manager.
+
+@end ftable
+
+@code{Screen} also provides two extension initialization functions:
+@ftable @code
+@item __screen_client_init__
+Called after the root window has been fetched and the
+@code{EventDispatcher} has been created, but before any clients are
+added.
+
+@item __screen_init__
+Called after all the clients have been added, i.e. before the window
+manager adds the next screen.
+
+@end ftable
+
+@code{Client} provides only one extension initialization function:
+@ftable @code
+@item __client_init__
+Called after the client has finished all of its core initialization,
+i.e. just before the screen will add the next client.
+
+@end ftable
+
+
+There are also corresponding finalization methods:
+
+@ftable @code
+@item __wm_del__
+@itemx __screen_del__
+@itemx __client_del__
+These are called just before the object will finish itself off, similar
+to the @code{__del__} method of objects.  (Actually, these methods are
+called from the @code{__del__} method of the object.)
+
+@end ftable
+
+
+@node Available Extension Modules
+@section Available Extension Modules
+
+This is a description of the available extension modules, with
+information on how to use them and on the interface they provide to
+other extension modules.
+
+@menu
+* color::         Color lookup and allocation.
+* font::          Font lookup and allocation.
+* keys::          Key event handlers.
+* focus::         Focus management.
+* border::        Display client borders.
+* outline::       Draw outlines of windows.
+* moveresize::    Move and resize clients.
+* cycle::         Cycle between windows to select one.
+* views::         Manage views (advanced workspaces).
+* panes::	  Manage windows in panes.
+* menu::	  Display a menu of options.
+* modewindow::    Display a general information window.
+* modestatus::    Display window manager status in a modewindow.
+* mw_clock::      Display current time in a modewindow.
+* mw_biff::       New mail notification in a modewindow.
+* mw_apm::        Display laptop battery status in a modewindow.
+* input::	  Read input text from the user, with editing.
+* inspect::       Allow remote inspection of PLWM internals.
+@end menu
+
+@node color
+@subsection @code{color} Extension Module
+
+@code{color} provides a screen mixin for color handling:
+
+@deftp {Screen Mixin} Color
+
+@code{Color} handles color allocation.  It maintains a cache of
+allocated colors to reduce @sc{plwm}'s colormap footprint on displays
+with a low bit depth.
+
+@defmethod Color get_color ( color, default = None )
+
+Returns the pixel value corresponding to @var{color}.  @var{color} can
+be a string or tuple of (R, G, B) integers.  If the color can't be
+allocated and @var{default} is provided, @code{get_color} tries to
+return that color instead.  If that fails too, it raises a
+@code{ColorError} exception.
+
+@end defmethod
+
+@defmethod Color get_color_res ( res_name, res_class, @w{default = None} )
+
+Return the pixel value for the color defined in the X resource
+identified by @code{res_name} @code{res_class}.
+@code{WindowManager.rdb_get} is used to lookup the resource, so the
+first components of the name and class should be omitted and they should
+start with @samp{.}.
+
+If @code{default} is provided, that name will be used if no matching X
+resource is found.  If omitted, or if the color can't be allocated,
+@code{ColorError} is raised.
+
+@end defmethod
+
+@end deftp
+
+
+@node font
+@subsection @code{font} Extension Module
+
+@code{font} provides a window manager mixin for loading fonts:
+
+@deftp {WindowManager Mixin} Font
+
+Font provides two functions for loading fonts:
+
+@defmethod Font get_font ( fontname, default = None )
+
+Returns the font object corresponding to @var{fontname}.  If
+@var{fontname} doesn't match any font, attemt to return the font named
+@var{default} instead, if @code{default} is provided.  If no font can be
+found, @code{FontError} is raised.
+
+@end defmethod
+
+@defmethod Font get_font_res ( res_name, res_class, @w{default = None} )
+
+Return the font object corresponding to the X resource identified by
+@code{res_name} @code{res_class}.  @code{WindowManager.rdb_get} is used
+to lookup the resource, so the first components of the name and class
+should be omitted and they should start with @samp{.}.
+
+If this resource isn't found or doesn't match any font, attempt
+to return the font named @var{default }instead, if @var{default} is
+provided.
+
+If no font can be found, @var{FontError} is raised
+
+@end defmethod
+
+@end deftp
+
+
+@node keys
+@subsection @code{keys} Extension Module
+
+@code{keys} provides two classes for handling key events:
+@code{KeyHandler} and its subclass @code{KeyGrabKeyboard}.
+
+
+@deffn Class KeyHandler ( obj )
+
+Represents a key handler, and should only be used as a base class, never
+instantiated directly.  Instantiate a class derived from KeyHandler to
+install its key handler.  When instantiating, @var{obj} should be a
+@code{WindowManager}, @code{Screen}, or @code{Client} object.
+
+If @var{obj} is a @code{WindowManager} object the key bindings defined
+will be active on all screens.  If @var{obj} is a @code{Screen} object
+the key bindings will only be active when that screen is the current
+one.  If @var{obj} is a @code{Client} object the key bindings will only
+be active when that client is focused.
+
+
+@defivar KeyHandler propagate_keys
+
+This attribute controls whether this key handler will allow other key
+handlers to recieve events.  If it is true, which is the default, key
+events will be passed to all currently installed key handlers.  If it is
+false key events will only reach this key handler and other installed
+handlers will never see them.
+
+@end defivar
+
+@defivar KeyHandler timeout
+
+If this is set to a number, the key handler method @code{_timeout} will
+be called if no key has been pressed for @code{timeout} number of
+seconds.  This is @code{None} by defalt, meaning that there are no
+timeout for this keyhandler.
+
+@end defivar
+
+@defmethod KeyHandler _timeout ( event )
+
+Called when the timeout is reached, if any.  @var{event} is the
+@code{TimerEvent} causing the timeout.  Key handlers using a timeout
+should override this method.
+
+@end defmethod
+
+@defmethod KeyHandler _cleanup ( )
+
+Uninstall the key handler.  This will remove all grabs held by the
+keyhandler, and remove its event handlers from the event dispatcher.
+Typically this is called from an overridden @code{_timeout}.
+
+@end defmethod
+
+@end deffn
+
+@deffn Class KeyGrabKeyboard ( obj, time )
+
+This @code{KeyHandler} subclass should be used when the application
+whishes to grab all key events, not only those corresponding to methods.
+
+The @var{obj} argument is the same as for @code{KeyHandler}.  @var{time}
+is the X time of the event which caused this key handler to be
+installed, typically the @code{time} attribute of the event object.  It
+can also be the constant @code{X.CurrentTime}.
+
+This class also changes the defaults for @code{propagate_keys} to false
+and @code{timeout} to 10 seconds, and provides a @code{_timeout} method
+which uninstalles the key handler.
+
+@end deffn
+
+A key handler is created by subclassing @code{KeyHandler} or
+@code{KeyGrabKeyboard}.  All methods defined in the new key handler
+class represents represents key bindings.  When a key event occures that
+match one of the methods, that method will be called with the event
+object as the only argument.
+
+The name of the method encodes the key event the method is bound to.
+The syntax looks like this:
+
+@example
+name :== keysym | modifiers '_' keysym
+
+keysym :== <any keysym in Xlib.XK, without the XK_ prefix>
+
+modifiers :== modifiers '_' modifier | modifier
+
+modifier :== 'S' | 'C' | 'M' | 'M1' | 'M2' | 'M3' | 'M4' | 'M5' |
+             'Any' | 'None' | 'R'
+@end example
+
+In other words, the method name should be a list of modifiers followed
+by the name of a keysym, all separated by underscores.  The keysyms are
+found in the Python Xlib module @code{Xlib.XK}.
+
+The modifiers have the following intepretation:
+
+@multitable @columnfractions 0.1 0.9
+@item S @tab Shift 
+@item C @tab Control
+@item M @tab Meta or Alt (interpreted as Mod1)
+@item M1 @tab Mod1
+@item ... @tab ...
+@item M5 @tab Mod5
+
+@item Any @tab Any modifier state, should not be combined with other
+modifiers
+
+@item None @tab No modifiers, useful for binding to the key @code{9}, or
+other keysyms which are not valid method names by themselves
+
+@item R @tab Bind to the key release event instead of the key press
+event
+
+@end multitable
+
+
+@node focus
+@subsection @code{focus} Extension Module
+
+@code{focus} provides classes to track and control window focus changes.
+The core classes will generate events when focus changes.  The order of
+the generated events is @code{ClientFocusOut},
+@code{CurrentClientChange}, and @code{ClientFocusIn}.  @xref{Core Events}.
+
+@deftp {WindowManager Mixin} PointToFocus
+
+This window manager mixin sets the current client to the one which
+currently contains the pointer.  Most of the time, the current client
+also has focus.  However if the current client don't use input, the
+previously focused client remains that.
+
+@end deftp
+
+@deftp {WindowManager Mixin} {SloppyFocus}
+
+This is a subclass of @code{FocusHandler} which implements sloppy focus
+instead of point-to-focus.  Sloppy focus means that a client will not
+loose focus when the pointer moves out to the root window, only when it
+moves to another client.
+
+@end deftp
+
+@deftp {WindowManager Mixin} {MoveFocus}
+
+This mixin defines a method for moving focus between clients:
+
+@defmethod FocusHandler move_focus ( dir )
+
+Move the focus to the next window in direction @code{dir}, which should
+be one of the constants @code{focus.MOVE_UP}, @code{focus.MOVE_DOWN},
+@code{focus.MOVE_LEFT} or @code{focus.MOVE_RIGHT}.
+
+Alas, this function is not very intelligent when choosing the next
+window, and it only works well when all windows are on a horizontal or
+vertical axis and focus is moved along that axis.
+
+@end defmethod
+
+@end deftp
+
+
+@node border
+@subsection @code{border} Extension Module
+
+This module provides a client mixin to change window border color
+depending on focus state.  This module requires the @code{color} and
+@code{focus} modules to work properly.
+
+@deftp {Client Mixin} BorderClient
+
+Set a border on windows, and change its color depending on focus state.
+The colors used are set with the X resources
+@code{plwm.border.color/Plwm.Border.Color} and
+@code{plwm.border.focus.color/Plwm.Border.Focus.Color}.  The defaults
+for these are "black" and "grey60", respectively.
+
+@defivar BorderClient border_default_width
+
+The border width in pixels.  Default is 3.
+
+@end defivar
+
+@defivar BorderClient no_border_clients
+
+A client filter, used to select clients which should have no border.
+The default is @code{cfilter.false}, so all clients will have borders.
+
+@end defivar
+
+@end deftp
+
+
+@node outline
+@subsection @code{outline} Extension Module
+
+This module provides different ways of drawing an outline of windows.
+All outline classes are client mixins and have the same interface:
+
+@defmethod OutlineClient outline_show ( @w{x = None,} @w{y = None,} @w{w = None,}  @w{h = None,} @w{name = None} )
+
+Show an outline for this client's window.  If an outline already is
+visible, it will be changed to reflect the arguments.
+
+The arguments @var{x}, @var{y}, @var{w} and @var{h} gives the geometry
+of the outline.  If any of these are not provided, the corresponding
+value from the current window geometry will be used.
+
+If @var{name} is provided, that string will be displayed in the middle
+of the outline.
+
+@end defmethod
+
+@defmethod OutlineClient outline_hide ( )
+
+Hide the outline, if it is visible.
+
+@end defmethod
+
+Currently there are two outline classes:
+
+@deftp {Client Mixin} XorOutlineClient
+
+Draws the outline directly on the display, by xor-ing pixel values.  The
+font used is set with the X resource
+@code{plwm.outline.font/Plwm.Outline.Font}.  The default is @code{fixed}.
+
+This is the most efficient outline method, but it has a few problems.
+If the windows under the outline changes, remains of the outline will
+still visible when it is hidden.  The windows can be restored by
+e.g. iconifying and deiconifiying, switching to another view and back,
+or in an Emacs pressing @code{C-l}.
+
+A bigger problem is that some combinations of depth, visual and colormap
+of the root window causes the xor of black to be black.  This results in
+an invisible outline if you have a black background.  This can be solved
+by changing the background colour of the root, or using some other
+outline method.
+
+@end deftp
+
+@deftp {Client Mixin} WindowOutlineClient
+
+This ``draws'' the outline by creating a set of thin windows, simulating
+drawing lines on the screen.  Any name is displayed by drawing it in a
+centered window, using the font specified as above.
+
+This is less efficient than an xor outline, since eight or nine windows
+have to be moved and resized if the outline is changed.  However, it
+does not have any of the problems listed for @code{XorOutlineClient}.
+
+The colours used is currently hardcoded to black and white.
+
+@end deftp
+
+
+@node moveresize
+@subsection @code{moveresize} Extension Module
+
+This module provides functionality for moving and resizing windows.  The
+core functionality is implemented by the abstract base class
+@code{MoveResize}.  It is subclassed by the two classes
+@code{MoveResizeOpaque} and @code{MoveResizeOutline} which resizes
+windows by changing the window size, and by drawing an outline of the
+new size, respectivelly.  The latter requires the @code{outline} module.
+See the code for details on these classes.
+
+Most resizing will be done via key handlers, so a template key handler
+class is provides that simplifies writing your own moving and resizing
+keyhandler for the currently focused client:
+
+@deffn Class MoveResizeKeys ( from_keyhandler, event )
+
+@code{MoveResizeKeys} contains methods for the various move and resize
+operations.  Is should be subclassed, and in the subclass key binding
+method names should be assigned to the general methods.
+
+There are 24 general methods:
+
+@multitable @columnfractions .15 .85
+@item _move_X     @tab Move the client in direction X
+@item _enlarge_X  @tab Enlarge the client in direction X
+@item _shrink_X   @tab Shrink the client from direction X
+@end multitable
+
+The direction is one of eight combinations of the four cardinal
+points:  e, ne, n, nw, w, sw, s and se.
+
+Additionally theres two methods for finishing the moveresize:
+
+@multitable @columnfractions .15 .85
+@item _moveresize_end    @tab Finish, actually moving and resizing the client
+@item _moveresize_abort  @tab Abort, leaving client with its old geometry
+@end multitable
+
+By default outline moveresizing is used with the
+@code{MoveResizeOutline} class.  This can be changed by redefining the
+attribute @code{_moveresize_class} to any subclass of @code{MoveResize}.
+
+A small @code{MoveResizeKeys} subclass example:
+
+@example
+class MyMRKeys(MoveResizeKeys):
+    _moveresize_class = MoveResizeOpaque
+ 
+    KP_Left = MoveResizeKeys._move_w
+    KP_Right = MoveResizeKeys._move_e
+    KP_Up = MoveResizeKeys._move_n
+    KP_Down = MoveResizeKeys._move_s
+ 
+    KP_Begin = MoveResizeKeys._moveresize_end
+    Escape = MoveResizeKeys._moveresize_abort
+@end example
+
+This would be invoked like this in a keyhandler event method in your
+basic keyhandler:
+
+@example
+def KP_Begin(self, evt):
+    MyMRKeys(self, evt)
+@end example
+
+@end deffn
+
+
+@code{MoveResize} generates events during operation.  The @code{type}
+attribute for all these are the event class, and the @code{client}
+attribute is the affected client.
+
+@code{MoveResizeStart} is generated when the moveresize is started,
+@code{MoveResizeEnd} when it ends and the window geometry is changed,
+and @code{MoveResizeEnd} when it is aborted and the window geometry is
+left unchanged.
+
+@code{MoveResizeDo} is generated for each change in window geometry
+during moveresize.  It has four attributes denoting the current
+geometry: @code{x}, @code{y}, @code{width} and @code{height}.
+
+
+@node cycle
+@subsection @code{cycle} Extension Module
+
+@code{cycle} provides classes for cycling among windows to select one of
+them to be activated.  This is performed by an abstract base class:
+
+@deffn Class Cycle ( screen, client_filter )
+
+Cycle among the windows on @var{screen} matching @var{client_filter}.
+
+@defmethod Cycle next ( )
+
+Cycle to the next window.
+
+@end defmethod
+
+@defmethod Cycle previous ( )
+
+Cycle to the previous window.
+
+@end defmethod
+
+@defmethod Cycle end ( )
+
+Finish and activating the selected window.
+
+@end defmethod
+
+@defmethod Cycle abort ( )
+
+Abort, not activating the selected window.
+
+@end defmethod
+
+@end deffn
+
+This is implemented by two subclasses: @code{CycleActive} which cycles
+among windows by activating them in turn, and @code{CycleOutline} which
+cycle among windows by drawing an outline of the currently selected
+window.  The latter requires the @code{outline} extension.
+
+To simplify writing a key handler for cycling, a template key handler is
+provided:
+
+@deffn Class CycleKeys ( keyhandler, event )
+
+Cycle among the windows on the current screen matching the client filter
+specified by the attribute @code{_cycle_filter}.  This is
+@code{cfilter.true} by default, cycling among all windows.  The cycle
+method is specified by the attribute @code{_cycle_class}, which by
+default is @code{CycleOutline}.
+
+CycleKeys defines a number of event handler methods:
+
+@multitable @columnfractions .15 .85
+@item _cycle_next      @tab Cycle to the next client
+@item _cycle_previous  @tab Cycle to the previous client
+@item _cycle_end       @tab Finish, selecting the current client
+@item _cycle_abort     @tab Abort, reverting to the previous state (if possible)
+@end multitable
+
+A small @code{CycleKeys} subclass example:
+
+@example
+class MyCycleKeys(CycleKeys):
+    _cycle_class = CycleActivate
+    _cycle_filter = cfilter.Not(cfilter.iconified)
+    
+    Tab = CycleKeys._cycle_next
+    C_Tab = CycleKeys._cycle_next
+    S_Tab = CycleKeys._cycle_previous
+    S_C_Tab = CycleKeys._cycle_previous
+    
+    Return = CycleKeys._cycle_end
+    Escape = CycleKeys._cycle_abort
+@end example
+     
+To activate your cycle keys, write a keyhandler event method like
+this in your basic keyhandler:
+
+@example
+def C_Tab(self, evt):
+    MyCycleKeys(self, evt)
+@end example
+
+@end deffn
+
+@node views
+@subsection @code{views} Extension Module
+
+Views are @sc{plwm}'s "workspaces".  Many window manager have the
+concept of workspaces, or virtual screens.  They give the illusion of
+having several screens, although only one of them can be displayed at a
+given time on the physical screen.  This is done by iconifying the
+windows not visible on a workspace when that workspace is displayed.
+
+Views does this too, and more.  A view can be seen as a projection of
+the avialable windows onto the screen in a certain configuration.  Views
+not only remembers which windows are visible on them, but also their
+geometry and stacking order.  This means that the same window can appear
+on several views in a different place, even with a different size, on
+each view.  Views also remembers the pointer position when swapping to
+another view, and restores it when the view is activated again.  All
+information about the view configuration is stored when @sc{plwm} exits,
+so it can be restored after a restart.
+
+Additionally, you can create views dynamically when you need them, and
+when they are no longer needed they will be destroyed.  A view is
+considered to be unneeded if it is empty when you switch to another
+view.
+
+All this is handled by the screen mixin @code{ViewHandler}:
+
+@deftp {Screen Mixin} ViewHandler
+
+@defivar ViewHandler view_always_visible_clients
+
+A client filter matching the client windows that should be visible on
+all views, irrespective of view configuration.  When determining if a
+view is empty so it can be deleted, these windows will be ignored.
+The default value is @code{cfilter.false}.
+
+@end defivar
+
+@defmethod ViewHandler view_new ( copyconf = 0 )
+
+Create a new view and switch to it.  If @var{copyconf} is true, the window
+configuration of the current view will be copied, otherwise the new view
+will be empty.
+
+@end defmethod
+
+@defmethod ViewHandler view_next ( )
+
+Switch to the next view.
+
+@end defmethod
+
+@defmethod ViewHandler view_prev ( )
+
+Switch to the previous view.
+
+@end defmethod
+
+@defmethod ViewHandler view_goto ( index, noexc = 0 )
+
+Switch to view number @var{index}, counting from 0.  If @var{noexc} is
+false @code{IndexError} will be raised if @var{index} is out or range.
+If @var{noexc} is true, quitely return.
+
+@end defmethod
+
+@defmethod ViewHandler view_find_with_client ( clients )
+
+Switch to the next view where there is a visible client matching the
+client filter @var{clients}.  Beeps if there none.
+
+@end defmethod
+
+@defmethod ViewHandler view_tag ( tag )
+
+Set a tag on the current view.  @var{tag} can be any string.
+
+@end defmethod
+
+@defmethod ViewHandler view_find_tag ( tag )
+
+Switch to the next view with tag @var{tag}.  Beeps if there is none.
+
+@end defmethod
+
+@end deftp
+
+If there is a modewindow, one can use the mixin @code{XMW_ViewHandler}
+instead of @code{ViewHandler} to get information on the current view
+number and tags in the modewindow.
+
+@node menu
+@subsection @code{menu} Extension Module
+
+The @code{menu} module provides a screen mixin to display a menu of
+options for the user to select from, as well as a pair of keyboard
+handler templates for the menu. There is only one menu for each
+screen, but the available options may be changed each time it is
+displayed. To the user, there appear to be many menus, but only one
+may be displayed at a time.
+
+@deftp {Screen Mixin} screenMenu
+
+Provides the menu window for each screen. The look of the window is
+controlled by the following class variables:
+
+@multitable {menu_borderwidth} {9x15bold} {Background color for the menu window.}
+@item Variable @tab Default @tab Description
+@item menu_fontname @tab 9x15bold @tab Font for menu options.
+@item menu_foreground @tab black @tab Foreground color for the menu window.
+@item menu_background @tab white @tab Background color for the menu window.
+@item menu_borderwidth @tab 3 @tab Border for the men window.
+@item menu_handler @tab MenuKeyHandler @tab Keyboard handler for menus.
+@end multitable
+
+@defmethod screenMenu menu_make ( labels, align = 'center' )
+
+Creates a menu window from @var{labels}, which must be a sequence of
+strings. The strings will be aligned in the window according to the
+value of @var{align}, which may be @code{'left'}, @code{'right'} or
+@code{'center'}. The @var{width} and @var{height} of the resulting
+window are returned as a tuple for use in calculating the menu
+placement.
+
+@end defmethod
+
+@defmethod screenMenu menu_run ( x, y, action )
+
+@var{x} and @var{y} are the coordinates the menu should be placed
+at. @var{action} is a callable argument that will be invoked with the
+string used for the label the user selected. If the user aborts the
+menu, action will not be invoked.
+
+@end defmethod
+
+A simple example of a menu with dictionary of functions might be:
+
+@example
+class MyFunctionMenu:
+
+    def __init__(self, screen, dict):
+        self.dict = dict
+        labels = dict.keys()
+	labels.sort()
+	width, height = screen.menu_make(labels)
+	# Center the menu
+	screen.menu_run((screen.root_width - width) / 2,
+                        (screen.root_height - height) / 2,
+			self)
+
+    def __call__(self, choice):
+        self.dict[choice]()
+@end example
+
+@end deftp
+
+Making selections and aborting the menu are done via key handlers
+@xref{keys}, and two template key handlers are provided for menu
+selections:
+
+@deffn Class MenuKeyHandler
+
+@code{MenuKeyHandler} provides the methods @code{_up}, @code{_down},
+@code{_do} and @code{_abort}. These move the current selection, pass
+the current selection to the @var{action} object passed to
+@code{menu_run}, and abort the menu taking no action. A binding with
+Emacs keys might look like:
+
+@example
+class MyMenuKeys(MenuKeyHandler):
+      C_p = MenuKeyHandler._up
+      C_n = MenuKeyHandler._down
+      Return = MenuKeyHandler._do
+      C_g = MenuKeyHandler._abort
+@end example
+
+@end deffn
+
+@deffn Class MenuCharHandler
+
+@code{MenuCharHandler} adds the @code{_goto} method, which moves the
+current selection to the first label that starts with the a character
+greater than or equal to the typed key. It then binds the keys
+@code{a} to @code{z} and @code{0} to @code{9} to _goto. This lets the
+user select labels by their first character if @code{MenuCharHandler}
+is used instead of @code{MenuKeyHandler}.
+
+@end deffn
+
+To have menus on your screen use your menu keys, you would add the
+@code{screenMenu} mixin and set the @code{menu_handler} class
+variable:
+
+@example
+class MyScreen(Screen, screenMenu):
+      menu_handler = MyMenuKeys
+@end example
+
+
+@node panes
+@subsection @code{panes} Extension Module
+
+The @code{panes} mixins provide an alternative method of managing
+windows. Rather than wrapping each window in a frame which is
+manipulated to manipulate the window, windows are placed in "panes",
+and the only thing the user can do to windows in a pane is circulate
+through them. When a window is placed in a pane, it will be resized to
+the largest size that it can handle which will fit in that pane.
+However, panes can be split into two parts at whatever fraction of the
+full pane the user chooses, so that panes can be created with nearly
+arbitrary geometry. Panes do not overlap, and every pixel on the
+screen is in a pane.
+
+See @file{examples/plpwm.py} for an example of using panes to build a
+window manager.
+
+@deftp Class Pane
+
+@defmethod Pane add_window ( client )
+
+Adds the clients window to the current pane. It will become the top
+window in the pane. If the current top window in the pane has focus,
+the new top window will get focus.
+
+@end defmethod
+
+@defmethod Pane iconify_window ( )
+
+Iconifies the panes active window.
+
+@end defmethod
+
+@defmethod Pane force_window ( )
+
+Resize the window again. This actually resizes the window down then
+back up, and is useful if the application doesn't realize how big the
+window really is. This is most often seen in programs started in an
+xterm by the xterm command.
+
+@end defmethod
+
+@defmethod Pane next_window ( )
+
+Make the next window associated with this pane the top window.
+
+@end defmethod
+
+@defmethod Pane prev_window ( )
+
+Make the previous window associated with this pane the top window. When
+a window is added to a pane, the window that was the top window becomes
+the previous window.
+
+@end defmethod
+
+@defmethod Pane horizontal_split ( fraction = .5 )
+
+Split the current pane into two halves horizontally. The new pane will
+get @var{fraction} of the current panes height at the bottom of the
+current pane, and will become the active pane.
+
+@end defmethod
+
+@defmethod Pane vertical_split ( fraction = .5 )
+
+Split the current pane into two halves vertically. The new pane will get
+@var{fraction} of the current panes width at the right of the current
+pane, and will become the active pane.
+
+@end defmethod
+
+@defmethod Pane maximize ( )
+
+Make the current pane occupy the entire screen, removing all other
+panes.
+
+@end defmethod
+
+@end deftp
+
+@deffn Filter panelfilter ( pane )
+
+True if the client is in the given pane.
+
+@end deffn
+
+@deftp {WindowManager Mixin} panesManager
+
+The @code{panesManager} mixin adds panes and pane manipulation to the
+window manager.
+
+@defivar panesManager panes_list
+
+The list of panes managed by this windowmanager.
+
+@end defivar
+
+@defivar panesManager panes_current
+
+The index of the pane containing the currently active window, also
+known as the active pane.
+
+@end defivar
+
+@defivar panesManager panes_window_gravity
+
+The gravity to be used for normal windows in this pane.
+
+@end defivar
+
+@defivar panesManager panes_maxsize_gravity
+
+The gravity to be used for windows with maxsize hints in this pane.
+
+@end defivar
+
+@defivar panesManager panes_transient_gravity
+
+The gravity to be used for transient windows in this pane.
+
+@end defivar
+
+@defmethod panesManager panes_goto ( index )
+
+Make the pane at @var{index} in @code{panes_list} the active pane.
+
+@end defmethod
+
+@defmethod panesManager panes_activate ( pane )
+
+Make @var{pane} the active pane.
+
+@end defmethod
+
+@defmethod panesManager panes_next ( )
+
+Make the next pane in the list the active pane. If the last pane is
+the active pane, make pane 0 the active pane.
+
+@end defmethod
+
+@defmethod panesManager panes_prev ( )
+
+Make the previous pane in the list the active pane. If pane 0 was
+active, make the last pane in the list active.
+
+@end defmethod
+
+@defmethod panesManager panes_number ( number )
+
+Rearrange @code{panes_list} so that the active pane is pane
+@var{number}. This is done by exchanging the list positions of pane
+@var{number} and pane @code{panes_current}.
+
+@end defmethod
+
+@defmethod panesManager panes_save ( )
+
+Save the state of all clients by building a dictionary of which pane
+they are associated with.
+
+@end defmethod
+
+@defmethod panesManager panes_restore ( )
+
+Put all clients back in the pane they were in when panes_save was last
+invoked, if possible. If the pane doesn't exist or is on a different
+screen from the window, the restore isn't possible.
+
+@end defmethod
+
+@end deftp
+
+@deffn {Screen Mixin} panesScreen
+
+This mixin causes the first pane to be created on each screen being
+managed. It has no variables or methods useful to the user, but you
+must mix it into your screen class if you want to use panes.
+
+@end deffn
+
+@deffn {Client Mixin} panesClient
+
+This mixin passes client events to the pane that the client's window
+is associated with. It has no variables or methods useful to the user,
+but you must mix it into your client class if you want to use panes.
+
+@end deffn
+
+
+@node modewindow
+@subsection @code{modewindow} Extension Module
+
+The @code{modewindow} module provides a screen mixin to display a
+window containing general window manager information, and a class
+representing this information.  The name of the module derives from the
+mode-line in Emacs, which has a similar function.
+
+@deftp {Screen Mixin} ModeWindowScreen
+
+Displays a mode window on the screen.  The look of the window is
+controlled with the following X resources:
+
+@table @asis
+
+@item plwm.modewindow.foreground/Plwm.ModeWindow.Foreground
+@itemx plwm.modewindow.background/Plwm.ModeWindow.Background
+
+These set the colors to be used by the modewindow.  Defaults are black
+foreground and white background.
+
+@item plwm.modewindow.font/Plwm.ModeWindow.Font
+
+The font to use in the modewindow.  Default is fixed.
+
+@end table
+
+@defivar ModeWindowScreen modewindow_pos
+
+Controls the position of the mode window.  Can either be
+@code{modewindow.TOP} or @code{modewindow.BOTTOM}.
+
+@end defivar
+
+@defmethod ModeWindowScreen modewindow_add_message ( message )
+
+Add @var{message}, which must be a @code{Message} object, to
+this mode window.  A single message object can be added to several mode
+windows.
+
+@end defmethod
+
+@defmethod ModeWindowScreen modewindow_remove_message ( message )
+
+Remove @var{message} from this modewindow.
+
+@end defmethod
+
+@end deftp
+
+@deffn Class Message ( position, @w{justification = modewindow.CENTER,} @w{nice = 0,} @w{text = None} )
+
+Represents a single message to be displayed in one or more mode windows.
+
+@var{position} is the horizontal position for this message in the
+modewindow, and should be a float in the range @w{[0.0, 1.0]}.  The
+message text is drawn at this point according to @var{justification},
+which should be one of the values @code{modewindow.LEFT},
+@code{modewindow.CENTER} or @code{modewindow.RIGHT}.  @var{nice} is
+currently not used, but is meant to be used to avoid message overlaps by
+shuffling less important messages around.  Finally, @var{text} is the
+initial text of this message, where @code{None} means an empty message.
+
+@defmethod Message set_text ( text )
+
+Change the text of this message to @var{text}.  All affected mode
+windows will be redrawn, if necessary.
+
+@end defmethod
+
+@end deffn
+
+
+@node modestatus
+@subsection @code{modestatus} Extension Module
+
+@code{modestatus} is a layer on top of @code{modewindow}, providing
+a way to display the current status of the window manager, e.g. the
+focused window, the geometry of a window during resize, and more.
+
+@deftp {Screen Mixin} ModeStatus
+
+Add a status message to the center of this screen's mode window.  The
+status message is really a stack of different messages, where the
+top-most message is currently displayed.
+
+@defmethod ModeStatus modestatus_set_default ( text )
+
+Set the default text to be displayed when there is no special status to
+@var{text}.
+
+@end defmethod
+
+@defmethod ModeStatus modestatus_new ( text = '' )
+
+Push a new message on to the status message stack.  A @code{ModeText}
+object will be returned, which will have @var{text} as the initial
+message.
+
+@end defmethod
+
+@end deftp
+
+@deffn Class ModeText
+
+This class should never be instantiated directly, only through
+@code{ModeStatus.modestatus_new}.
+
+@defmethod ModeText set ( text )
+
+Set the text of this status message to @var{text}.  If this is the
+top-most message, the new text will be displayed.
+
+@end defmethod
+
+@defmethod ModeText pop ( )
+
+Remove this message from the message stack.  If this was the top-most
+message, the previous message will be displayed instead.
+
+@end defmethod
+
+@end deffn
+
+This module also provides some mixins that use the mode status
+functionality:
+
+@deftp {Client Mixin} ModeFocusedTitle
+
+Display the currently focused client's title as the default message.
+
+@end deftp
+
+@deftp {Screen Mixin} ModeMoveResize
+
+When moving and resizing, display the title of the displayed window and
+the current geometry.  The format of the message is controlled by an X
+resource with name @code{plwm.moveResize.modeFormat} and class
+@code{Plwm.MoveResize.ModeFormat}.  It should be a Python format string,
+where @code{%(title)s} will be replaced with the client title, and
+@code{%(geometry)s} with the current geometry.  The default format is
+@code{%(title)s [%(geometry)s]}.
+
+@end deftp
+
+
+@node mw_clock
+@subsection @code{mw_clock} Extension Module
+
+@deftp {WindowManager Mixin} ModeWindowClock
+
+This mixin displays the current time in all mode windows.  It is updated
+once a minute.  The format is a @code{time.strftime} format, by default
+@code{%H:%M}.  It can be changed with an X resource with name
+@code{plwm.modewindow.clock.format} and class
+@code{Plwm.ModeWindow.Clock.Format}.
+
+@defivar ModeWindowClock mw_clock_position
+
+The position of the time message in the mode window, default 1.0.
+
+@end defivar
+
+@defivar ModeWindowClock mw_clock_justification
+
+The justification of the time message, default is @code{modewindow.RIGHT}.
+
+@end defivar
+
+@end deftp
+
+
+@node mw_biff
+@subsection @code{mw_biff} Extension Module
+
+This module provides two different mail notifications mixins, which both
+use the mode windows and beeping for notification.  They assume that new
+mail is stored in @code{$MAIL}, and removed from it when read.  This
+works well with the behaviour of Gnus with the nnmail backend.
+
+When @code{$MAIL} is empty or non-existent, no message is displayed.
+When new mail arrives the message @samp{New mail} is displayed, and the
+speaker beeps.  If @code{$MAIL} is accessed without being emptied, the
+message is changed to @samp{Mail}.  When @code{$MAIL} is emptied, the
+message is removed again.
+
+The messages can be changed with X resources.  The X resource with name
+@code{plwm.modewindow.newMail.text} and class
+@code{Plwm.ModeWindow.NewMail.Text} controls the new mail message, and
+the resource with name @code{plwm.modewindow.Mail.text} and class
+@code{Plwm.ModeWindow.Mail.Text} controls the mail exists message.
+
+Changing the mail exists message to @samp{} could be useful if one uses
+a mail client that leaves read mail in @code{$MAIL}.
+
+@deftp {WindowManager Mixin} ModeWindowBiff
+
+Displays a mail notification message in all mode windows.
+
+@defivar ModeWindowBiff mw_biff_position
+
+The position of the mail message in the mode window, default 0.0.
+
+@end defivar
+
+@defivar ModeWindowBiff mw_biff_justification
+
+The justification of the mail message, default is @code{modewindow.LEFT}.
+
+@end defivar
+
+@end deftp
+
+If the mailspool is mounted over NFS, it might be unadvisable to access
+it from the window manager.  If the NFS server should freeze, the entire
+window manager would be unusable until the server recovers.  Therefore
+a threaded biff mixin is provided:
+
+@deftp {WindowManager Mixin} ThreadedModeWindowBiff
+
+This subclasses @code{ModeWindowBiff}, with the change that access to
+@code{$MAIL} is done in a separate thread.  As @sc{plwm} certainly isn't
+thread-safe, all interaction with the rest of the window manager modules
+is done in the main thread.  Communication between the mailspool access
+thread and the main thread is done without locks or semaphores.  The
+main thread polls at regular intervals whether the access thread has
+finished yet, and if so, updates the mode window.  This uses the
+property of Python threading that only one thread at a time may access
+Python objects.  If this would ever change, this class might break.
+
+@end deftp
+
+
+@node mw_apm
+@subsection @code{mw_apm} Extension Module
+
+@deftp {WindowManager Mixin} ModeWindowAPM
+
+This mixin displays the battery status in all mode windows.  There is a
+generic interface for fetching the status, making it easy to port this
+module to different @sc{apm} systems.  Currently, the only supported
+system is the special file @file{/proc/apm} of Linux systems.
+
+@defivar ModeWindowClock mw_apm_position
+
+The position of the battery status in the mode window, default 0.2.
+
+@end defivar
+
+@defivar ModeWindowClock mw_apm_justification
+
+The justification of the battery status, default is @code{modewindow.RIGHT}.
+
+@end defivar
+
+@end deftp
+
+
+@node input
+@subsection @code{input} Extensions Module
+
+@code{Input} provides tools to let the window manager read a line of
+input from the user and act on it. It provides a subclass of
+@code{KeyGrabKeyboard} (@pxref{keys}) for configuration, and two
+classes to read input.
+
+@deftp Class InputKeyHandler ( handler, displayer )
+
+Creates a key handler class for editing input. The @var{handler} is
+any object acceptable to @code{KeyGrabKeyboard}.
+@var{displyer}@code{.show(@var{left}, @var{right})} is called to
+display the two strings with a curser between
+them. @var{displayer}@code{.do(@var{text})} is called when the user is
+through editing the input. @var{displayer}@code{.abort()} is called if
+the user aborts the operation.
+
+@code{InputKeyHandler} provides the following methods that may be
+bound to keystrokes like any other keyhander. @xref{keys}.
+
+@defmethod InputKeyHandler _insert ( event )
+The key pressed to generate @code{event} is inserted into the buffer
+at the cursor. All the characters of the latin1 character set are bound
+to this by default.
+@end defmethod
+
+@defmethod InputKeyHandler _forw (event)
+Move the cursor forward one character in the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _back (event)
+Move the cursor backward one character in the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _delforw (event)
+Delete the character in front of the cursor in the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _back (event)
+Delete the character behind of the cursor in the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _end (event)
+Move the cursor to the end of the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _begin (event)
+Move the cursor to the beginning of the edited text.
+@end defmethod
+
+@defmethod InputKeyHandler _back (event)
+Delete all the characters from the cursor to the end of the edited
+text.
+@end defmethod
+
+@defmethod InputKeyHandler _paste (event)
+If text is selected, it will be inserted into the edited text at the
+cursor, as if typed by the user. For this to work, the @code{handler}
+must be an instance of @code{wmanager.Window}. If that is not the
+case, or no text is currently selected, this does nothing.
+@end defmethod
+
+@defmethod InputKeyHandler _done (event)
+Finishes the action, and calls @code{displayer.do} passing it the
+edited text.
+@end defmethod
+
+@defmethod InputKeyHander _abort (event)
+Aborts the input operation, callgin @code{displayer.abort()}.
+@end defmethod
+
+@end deftp
+
+@deftp Class inputWindow ( prompt, screen, @w{length = 30})
+
+@code{inputWindow} is a class that creates a window on @var{screen}
+and uses an @code{InputKeyHandler} to read input from the user. The
+user is prompted with @var{prompt}. Space is left for @var{length}
+extra characterfs to display in the window, but it will scroll to keep
+the cursor always in view.
+
+@defivar inputWindow fontname
+@defivarx inputWindow foreground
+@defivarx inputWindow background
+@defivarx inputWindow borderwidth
+
+The attributes of the window used to read the input. The defaults are
+9x15 for the @var{fontname}, a black @var{foreground} on a white
+@var{background}, and a @var{borderwidth} of 3.
+
+@end defivar
+
+@defivar inputWindow height
+@defivarx inputWindow width
+
+The @var{height} and @var{width} of the window will be available as
+attributes after the @code{inputWindow} is instantiated.
+
+@end defivar
+
+@defmethod inputWindow read ( action, handlertype, @w{x = 0}, @w{y = 0} )
+
+The read method of the inputWindow is called to read text from user
+and act on it. @var{handlertype} should be a subclass of
+@code{InputKeyHandler} with appropriate bindings for editing the
+text. @var{action} will be invoked with the edited text as it's sole
+argument when @var{handlertypes}'s @code{_done} action is invoked.
+
+@end defmethod
+@end deftp
+
+@deftp Class modeInput ( prompt, screen )
+
+An @code{modeInput} object uses the @code{modewindow} on @var{screen}
+to read input from the user. @xref{modewindow}. It has an @code{read}
+method that takes the same arguments as the @code{read} method of
+@code{inputWindow}, except that x and y are ignored.
+
+@end deftp
+
+
+@node inspect
+@subsection @code{inspect} Extension Module
+
+@code{Inspect} allows a special client to remotly connect to the running
+window manager.  The client can then execute Python statements in the
+context of the window manager.  This can be used to inspect the internal
+state of the window manager, change it, or whatever you might come up
+with.
+
+The server side is implemented by a window manager mixin.  For
+documentation on the client program, see @ref{inspect_plwm}.
+
+@deftp {Window Manager Mixin} InspectServer
+
+The inspect server can be enabled or disabled.  When it is enabled, the
+message @code{[Inspect]} is showed in the modewindow.  When inspect
+clients connect it will change to also show the number of connected
+clients. 
+
+@defivar inspect_enabled_at_start
+
+Whether the inspect server should be enabled at startup.  Default value
+is false.
+
+@end defivar
+
+@defmethod InspectServer inspect_enable ( )
+
+Enable the inspect server.
+
+@end defmethod
+
+@defmethod InspectServer inspect_disable ( force = 0 )
+
+Disable the inspect server.  If @var{force} is false disabling will fail
+if clients are connected, which will be indicated by a beep.  If
+@var{force} is true the clients will be disconnected and the inspect
+server disabled.
+
+@end defmethod
+
+@defmethod InspectServer inspect_toggle ( force = 0 )
+
+Toggle the inspect server on or off.  @var{force} is only used for
+disabling, and has the same meaning as for @code{inspect_disable}.
+
+@end defmethod
+
+@end deftp
+
+The inspect server is as secure as your X display.  The inspect server
+announces the @sc{tcp} port it listens on in a property on the root
+window.  In the same property it also stores a random, 31-bit cookie.
+To be able to connect to the inspect server the client must fetch this
+property to find the port to connect to, and the cookie to send as
+authorization.  Therefore only those with access to your X display,
+thanks to xhost or xauth, can connect to the inspect server.
+
+
+@node Utilities
+@chapter Utilities
+
+The following small X programs can be seen as a first step towards
+making @sc{plwm} a full pointless desktop to rival @sc{gnome} and
+@sc{kde}.  Well, maybe not.
+
+@menu
+* wmm::            The Window Manager Manager.
+* inspect_plwm::   @sc{plwm} remote inspection client.
+@end menu
+
+@node wmm
+@section wmm
+
+wmm, the Window Manager Manager, is a utility to simplify testing your
+freshly hacked window manager.  It opens a small window containing one
+or more buttons.  When a button is clicked, a command is executed.
+
+The window manager managing feature is that if wmm is iconified by the
+running window manager it will be mapped when the window manager exits
+or crashes.  When wmm detects that it has been mapped it will raise
+itself to the top of all the other windows.  This ensures that it will
+be possible to click on one of its buttons to start another window
+manager, and thus be able to fix the bug which lurked in your window
+manager.
+
+wmm is configured with @code{~/.wmmrc}.  For each non-blank line, not
+starting with a #, wmm will create a button.  Each line should consist
+of two tab-separated fields, the first is the button label and the
+second is the command to run when the button is clicked (it should
+probably end with an @code{&} so WMM isn't locked).  If the second field
+is missing, wmm will instead quit when the button is clicked.
+
+@node inspect_plwm
+@section inspect_plwm
+
+This utility is used to connect to the inspect server of a running
+window manager.  The client must be able to connect to the display that
+the window manager is running on to be able to connect to the inspect
+server.  The display is fetched from the @code{$DISPLAY} variable or the
+command line option @code{-display}.
+
+When successfully connected, a welcome message is displayed by the
+window manager and a common Python prompt is shown.  Python expressions
+and statements can now be entered.  They will be evaluated in the window
+manager, and the results or tracebacks will be printed.
+
+The code will be evalated in an environment containing all builtin
+functions and the variable @code{wm}, which points to the WindowManager
+object representing the window manager.  
+
+An example session (long lines have been wrapped):
+
+@example
+[petli@@sid petli]$ inspect_plwm 
+Welcome to PLWM at :0
+>>> wm
+<__main__.PLWM instance at 82148a8>
+>>> wm.default_screen.clients.values()
+[<__main__.MyClient instance at 822ec28>,
+ <__main__.MyClient instance at 8215ce8>,
+ <__main__.MyClient instance at 8217370>,
+ <__main__.MyClient instance at 822bfc0>]
+>>> import sys
+>>> map(lambda c: sys.stdout.write(c.get_title() + '\n'),
+         wm.default_screen.clients.values())
+xterm
+xterm
+WMManager
+emacs@@sid.cendio.se
+[None, None, None, None]
+>>>
+@end example
+
+Note that modules can be imported, and that sys.stdout and sys.stderr
+will output in the terminal window inspect_plwm is running in, even
+though the expressions are evaluated inside the window manager.
+
+Multi-line statements can also be written with a small kludge:  The
+lines must start with exactly one space, and one signals that the suite
+is finished by entering an empty line (without any space at all).
+Example:
+
+@example
+>>>  for c in wm.default_screen.clients.values():
+...    print c.get_title(), c.geometry()
+... 
+xterm (516, 30, 502, 732, 3)
+xterm (0, 30, 508, 732, 3)
+WMManager (100, 0, 63, 71, 3)
+emacs@@sid.cendio.se (192, 18, 632, 744, 3)
+>>>
+@end example
+
+
+@node ToDo
+@chapter ToDo
+
+Known bugs:
+
+@itemize @bullet
+@item
+
+None, right now.  But there are probably still memory leaks, subversive
+behaviour and smelly code here and there.
+
+@end itemize
+
+Fairly simple improvements:
+
+@itemize @bullet
+@item
+X resources: get rid of them.  Or at least use
+Client/Screen/WindowManager attributes in the first place, falling back
+on resources for backward compitability.
+
+@item
+modewin: Teach it to avoid overlapping texts.  Currently it will only
+write overlapping texts on top on each other, but it'd be nice if it was
+intelligent enough to shuffle the texts around to avoid it.
+
+@item
+Being able to dynamically turn on and off debugging in a running
+@sc{plwm}.  Most of the framework is there, it only needs some key
+bindings. 
+
+@end itemize
+
+More advanced fixes and features:
+
+@itemize @bullet
+@item
+Improve inspection to allow pdb debugging.
+
+@item
+Provide a class which can represent the layout of the windows in such a
+way that one can easily ask for things like "the window to the left of
+this window", "the first window edge we run into moving this window
+upwards" or "the visible parts of this window".
+
+@item
+Real frames around the client windows.  This requires reparenting the windows
+and thus quite a number of modifications to wmanager.Client.
+
+@item
+Maybe some people would like mouse support?
+
+@item
+Other focus methods, such as click-to-focus.
+
+@end itemize
+
+Real out-of-this-time features:
+
+@itemize @bullet
+@item
+Support for controlling specific clients from the keyboard.  Ex:
+pressing tab in a Netscape window would move the pointer to the next
+hyperlink in the document.  Update: Okay, Netscape 6.1 actually have
+tabbing between links.  There are probably still uses for this idea, and
+the modification to @code{keys} in 2.3 was done to make this possible.
+
+@item
+Rewrite the whole thing as threaded collection of agents, or something.
+@sc{plwm} is beginning to feel quite bulky.
+
+@end itemize
+
+Misc stuff:
+
+@itemize @bullet
+@item
+Replace autoconf script with Distutils script.  Or maybe a combination
+of both.
+
+@item
+Change the window script idea around, so that a small script is
+installed as @code{plwm} which then simply sources @file{~/.plwm.py}.
+
+@end itemize
+
+@node Credits
+@chapter Credits
+
+@sc{plwm} was born late one night in the spring of 1999 when Peter
+Liljenberg and Morgan Eklöf, as our habit is, enjoyed music and
+conversation.  After some general window manager discussions and
+consensus on the beauty of using Python instead of yet another
+configuration file language, the name "the Pointless Window Manager"
+popped up.  It was so good that we just had to implement it.
+
+When it came to hacking, Peter was more inclined to let the work (or
+life) suffer and as a result have written all of the code.
+
+Henrik Rindlöw has helped with ironing out bugs triggered in multiheaded
+environments.  By being the first other active user of @sc{plwm} he has
+also found quite a number of more normal bugs.
+
+Our now former employer @uref{http://www.cendio.se/, Cendio Systems}
+deserves a paragraph here.  The employee contracts explicitly mentioned
+that we were allowed to develop non-work-related GPL'd programs using
+the company's computers in our spare time, and keep the copyright.
+Nice.  Now I can admit that quite a lot of work time also went into the
+development...
+
+Mike Meyer wrote the very interesting extension modules @code{panes} and
+@code{menu}, and the corresponding example window manager @code{plpwm}.
+
+
+@node Contact Info
+@chapter Contact Info
+
+Bug reports, feature requests, new modules, bug fixes, etc, should go to
+Peter Liljenberg <petli@@ctrl-c.liu.se>.
+
+New versions of @sc{plwm} will be announced on
+@uref{http://plwm.sourceforge.net/, the @sc{plwm} website} and on
+@uref{http://www.freshmeat.net/, Freshmeat}.
+
+@sc{plwm} is a SourceForge project.  Mailinglists, bug tracking and
+public CVS access can be found at
+@uref{http://sourceforge.net/project/plwm/, the project page}.
+
+@bye

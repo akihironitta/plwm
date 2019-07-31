@@ -1,0 +1,56 @@
+* Event handling
+
+** Problem
+
+The current event handling model is beginning to feel awkward.
+The EventDispatcher scheme was created to unify event handler
+registration with setting the appropriate event masks.
+
+The event mask handling works well, but it turns out that only a
+rather small part of all events in the window manager actually is X
+events requiring setting event masks.
+
+The big problem is the coarseness of the mathing of events to
+handlers.  The idea with generic and specialized dispatchers (with the
+sequence wm.dispatch -> screen.dispatch -> client.dispatch) is not
+wholly appropriate.  For illustration, consider an idealized focus
+handler tracking EnterNotify events on the screen root and on client
+windows:
+
+  screen.dipatch.add_handler(EventNotify, self.handle_screen_enter)
+  client.dipatch.add_handler(EventNotify, self.handle_client_enter)
+
+Here's the catch: when an EventNotify is generated for a client
+window, _both_ handlers will be called: obviously not what was
+expected.
+
+The sequential event dispatching was created to allow grabbing events
+from other parts of the window manager, and for allowing to install a
+single handler on e.g. a screen to catch all client events on that
+screen.
+
+When we start adding client frames (splitting the simple
+client.dispatch into a client.dispatch -> (client.frame_dispatch or
+client.window_dispath) and internal windows, these scheme breaks.
+
+
+** Solution
+
+Keep the event mask handling of EventDispatches, but drop their event
+handler calling support.  Instead have a single wm.dispatch in which
+you register event handlers together with an _event_filter_ that
+specifies when that handler should be called.
+
+Event filters build on the successful client filters idea, of
+constructing an arbitrarly complex boolean expression.  Calling event
+handlers could then be simplified to
+
+   for efilter, handler in event_handlers:
+       if efilter(event):
+	   handler(event)
+
+One problem left to work out is event handler ordering.  We should at
+least support grab handlers, and possibly also system handlers (which
+are oblivious to grabbing).  This could simply be handled by having
+three lists of event handlers.  I doubt that more advanced event
+ordering is actually needed, currently (v2.4) no part of PLWM uses it.

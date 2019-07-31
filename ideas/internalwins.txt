@@ -1,0 +1,25 @@
+* Internal windows
+
+** Problem
+
+PLWM is increasingly creating windows: modewindow, menu, and the
+upcoming frames support will also have windows of a sort.
+
+There should be a basic class to use for this, which provides event
+handling, and if needed, masquerading the internal window as a client
+window so that the ordinary functions for handling things like focus,
+borders, and resizing work transparently.
+
+** Solution
+
+Define a basic class, or maybe two: one for simple internal windows
+and one for clientish windows.
+
+** Followup
+
+Most of this has been done, although internal windows still can't
+behave as clients all the time.  Some mixins, e.g. the BorderClient
+could be abstracted to allow internal windows to have the same kind of
+borders as client windows.
+
+

@@ -1,0 +1,17 @@
+2001-08-24  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* petliwm.py (MozillaKeys.__init__): 
+	(MozillaKeys.R_Any_BackSpace): For Netscape 6.1, backspace now
+	scrolls the page up again.
+
+Wed Feb 14 12:00:50 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* petliwm.py (BasicKeys.M5_l): Move pointer to the canonical
+ 	position for this window (typically out of the way).
+
+Thu Jan 11 18:34:58 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* petliwm.py (FixaBalansHelvetetFulpatch.__client_init__): Block
+ 	UnmapNotify events while reparenting JVM AWT windows, to avoid
+ 	loosing them immediately afterwards.
+

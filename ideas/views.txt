@@ -1,0 +1,41 @@
+* Generalized view handling
+
+** Problem
+
+Views, or workspaces, are a general concept that should work no matter
+what window layout handling we use.  Currently views only understands
+client window configuration, and that is all that is stored and
+restored when switching between views.
+
+When panes were added, there was for the first time more than one way
+of handling window layout.  We can't combine panes and views, as the
+views would badly mess up the internal state of the panes.  It would
+however be very nice to have views of panes, as we already have views
+of windows.
+
+** Solution
+
+Generalize views, making it call a separate mixin to store and restore
+view layout.  Then we could mixin WindowViewLayout or PanesViewLayout,
+or any future mixin, depending on what kind of window handling we use.
+(Compare with outline, where we can mixin XorOutline or WindowOutline
+depending on our preferences.)
+
+
+*** Alternative solution
+
+Views saves and restores client state. As noted, this can screw up
+other mixins that have state that depends on the clients state. Other
+mixins may want to be able to save and restore state with views. For
+instance, allowing different modewindows - or not having one - for
+different views might be useful.
+
+Rather than having the user chose a layout type, provide hooks so that
+other mixins can pass data to be saved with a view, and get that data
+back when the view is restored. For instance, have TYPE_viewsave and
+TYPE_viewrestore, with a listing of TYPE's in views.py. Making a mixin
+"play well" with views would then require adding TYPE to the central
+list, writing TYPE_viewsave that returns a list of integers, and
+TYPE_viewrestore that accepts a list of integers and puts things back
+appropriately.
+

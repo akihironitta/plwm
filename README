@@ -1,0 +1,63 @@
+
+                     The Pointless Window Manager
+
+                                  or
+
+               Python As A Configuration File Language
+
+                                  or
+
+                            Unlightenment
+
+
+*** Copyright
+
+Copyright 1999-2004 Peter Liljenberg (unless indicated otherwisely).
+
+The GNU General Public Licence applies to all the code, see COPYING
+for the usual details.
+
+
+*** Installation
+
+See the file INSTALL.
+
+
+*** Using plwm without installing
+
+PLWM can be run from the distribution tree.  Start it with python
+(if you dearchived the distribution in /home/foo):
+
+  python /home/foo/plwm-2.7/examples/examplewm.py
+
+
+*** Documentation
+
+In doc, you'll want to build and read plwm.info.  (After running make,
+you can read the built info-file in an emacs by pressing C-u C-h i and
+giving the path to plwm.info.)
+
+A terse description of the example window manager is in
+examples/README.examplewm.
+
+
+*** Using it.
+
+There are a number of example window managers in examples/. Running
+the examples will start that window manager. Examing the examples is
+the best way to get a feel for how to configure a plwm window manager.
+
+If you want to test window managers, or switch between them, then
+utils/wmm.py is a window manager manager. Read the source file for
+documentation.
+
+
+*** Contacts:
+
+Mike Meyer <mwm@mired.org>
+Peter Liljenberg <petli@ctrl-c.liu.se>
+
+The PLWM website is located at http://plwm.sourceforge.net/.  PLWM is
+a SourceForge project, its project page can be found at
+http://sourceforge.net/project/plwm/.
+

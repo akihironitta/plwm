@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plpwm xmlns:xi="http://www.w3.org/2001/XInclude">
+  <functionmenu>
+    <getapp label="a: Audio" title="VCL" command="vlc"/>
+    <getapp label="b: Browser" title="w3m:" command="w3m"/>
+    <getapp label="c: Calendar" title="Sunbird" command="sunbird"/>
+    <getapp label="d: Documents" title="LyX" command="lyx"/>
+    <getapp label="e: Editor" title="emacs@" command="emacs"/>
+    <getapp label="f: Finances" title="data - " command="gnucash"/>
+    <getapp label="i: IM" title="Buddy" command="gaim"/>
+    <getapp label="m: Mail" title="Claws Mail" command="claws-mail"/>
+    <getapp label="o: Office" title="OpenOffice.org" command="openoffice.org"/>
+    <getapp label="p: Pdf viewer" title="Xpdf:" command="xpdf"/>
+    <getapp label="x: XClipboard" title="xclipboard"/>
+  </functionmenu>
+  <namemenu>
+    <getapp label="d: Dillo" title="Dillo" command="dillo"/>
+    <getapp label="e: Emacs" title="emacs@" command="emacs"/>
+    <!-- Damn Firefox doesn't set the title properly when running tabbed, just
+         uses "firefox-bin". So we try both cases. -->
+    <getapp label="f: Firefox" title="[fF]irefox" command="firefox"/>
+    <getapp label="g: Gkrellm" title="gkrellm"/>
+    <getapp label="l: LyX" title="LyX" command="lyx"/>
+    <getapp label="o: OpenOffice" title="OpenOffice.org" command="openoffice.org"/>
+    <getapp label="s: Sunbird" title="Sunbird" command="sunbird"/>
+    <getapp label="v: VNC" title="TightVNC" command="vncviewer"/>
+    <run label="w w3m" command="/home/mwm/bin/w3m"/>
+    <getapp label="x: XClipboard" title="xclipboard"/>
+  </namemenu>
+  <itunesmenu>
+    <itunes label="1: Pause" command="pause"/>
+    <itunes label="2: Play" command="play"/>
+    <itunes label="3: Stop" command="stop"/>
+  </itunesmenu>
+  <websearches>
+    <search label="Amazon" shortcut="a" url="http://www.amazon.com/exec/obidos/search-handle-url/index=blended;field-keywords=%s"/>
+    <search label="Code" shortcut="c" url="http://www.google.com/codesearch?q=%s"/>
+    <search label="Dictionary" shortcut="d" url="http://www.webster.com/cgi-bin/dictionary?book=Dictionary&amp;va=%s"/>
+    <search label="Google" shortcut="g" url="http://www.google.com/search?q=%s&amp;hl=en&amp;safe=off"/>
+    <search label="IMDB" shortcut="i" url="http://www.imdb.com/find?tt=on&amp;nm=on&amp;mx=20&amp;q=%s"/>
+    <search label="Images" shortcut="I" images="1" url="http://images.google.com/images?q=%s&amp;ie=ISO-8859-1&amp;oe=ISO-8859-1&amp;imgsz=xxlarge&amp;safe=o"/>
+    <search label="Jargon" shortcut="j" url="http://www.google.com/search?as_q=%s&amp;as_sitesearch=www.catb.org&amp;btnI=I%27m+feeling+lucky"/>
+    <search label="Netflix" shortcut="n" url="http://www.netflix.com/Search?v1=%s"/>
+    <search label="Python documentation" shortcut="p" url="http://starship.python.net/crew/theller/pyhelp.cgi?keyword=%s&amp;version=current"/>
+    <search label="Python cookbook" shortcut="P" url="http://aspn.activestate.com/ASPN/search?query=%s&amp;section=PYTHONCKBK&amp;type=Subsection&amp;x=13&amp;y=3"/>
+    <search label="Quotes" shortcut="q" url="http://en.wikiquote.org/w/index.php?title=Special%%3ASearch&amp;search=%s&amp;fulltext=Search"/>
+    <search label="TV" shortcut="t" url="http://www.tv.com/search.php?type=11&amp;stype=all&amp;qs=%s&amp;x=0&amp;y=0"/>
+    <search label="Thesaurs" shortcut="T" url="http://www.webster.com/cgi-bin/thesaurus?book=Thesaurus&amp;va=%s"/>
+    <search label="Wikipedia" shortcut="w" url="http://en.wikipedia.org/wiki/Special:Search?search=%s&amp;go=Go"/>
+    <search label="Wiktionary" shortcut="W" url="http://en.wiktionary.org/wiki/Special:Search?search=%s&amp;go=Go"/>
+  </websearches>
+  <paneconfigmenus>
+    <paneconfig label="0: Working">
+      <vertical fraction=".545454"/>
+      <vertical fraction=".5"/>
+      <horizontal fraction=".06"/>
+      <vertical fraction=".75"/>
+      <horizontal fraction=".06"/>
+      <horizontal fraction=".45"/>
+      <newpane pane="4"/>
+      <horizontal fraction=".42"/>
+      <horizontal fraction=".5"/>
+      <goto number="2"/>
+      <number number="0"/>
+      <goto number="4"/>
+      <number number="1"/>
+      <goto number="8"/>
+      <number number="2"/>
+      <goto number="7"/>
+      <number number="3"/>
+      <goto number="7"/>
+      <number number="4"/>
+      <goto number="8"/>
+      <number number="5"/>
+      <goto number="8"/>
+      <number number="7"/>
+      <newpane pane="8"/>
+      <vertical fraction=".5"/>
+    </paneconfig>
+    <paneconfig label="1: Big right">
+      <vertical fraction=".545454"/>
+      <vertical fraction=".5"/>
+      <horizontal fraction=".06"/>
+      <vertical fraction=".75"/>
+      <horizontal fraction=".06"/>
+      <horizontal fraction=".45"/>
+      <newpane pane="4"/>
+      <horizontal fraction=".42"/>
+      <horizontal fraction=".5"/>
+      <goto number="2"/>
+      <number number="0"/>
+      <goto number="4"/>
+      <number number="1"/>
+      <goto number="8"/>
+      <number number="2"/>
+      <goto number="7"/>
+      <number number="3"/>
+      <goto number="7"/>
+      <number number="4"/>
+      <goto number="8"/>
+      <number number="5"/>
+      <goto number="8"/>
+      <number number="7"/>
+      <newpane pane="7"/>
+      <vertical fraction=".5"/>
+    </paneconfig>
+    <paneconfig label="2: Screens">
+      <vertical fraction=".545454"/>
+    </paneconfig>
+  </paneconfigmenus>
+</plpwm>

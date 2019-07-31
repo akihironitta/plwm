@@ -1,0 +1,359 @@
+-*-outline-*-
+
+                 NEWS for the Pointless Window Manager
+
+* Version 2.7rc1 - 14 Nov 2009
+
+** Mouse binding support, with a window resizing mixin.
+
+** Fixes for Python 2.6.
+
+** Reformatted code to better follow PEP 8.
+
+** Window frame implementation. (now, we have window titles!)
+
+** New ModeWindow mixins
+
+Several new mixins have been added, including XMMS and XMMS2 support, Gmail
+inbox checking, and ACPI and CPUfreq status. (battery, temperature, CPU
+speed, etc.)
+
+** Window selection method like Emacs' ido.el
+
+An interactive window selection method that works a lot like ido.el in
+Emacs has been added.  See plwm/ido.py for more details.
+
+** New synthetic events for iconification
+
+When a client window is iconified or deiconified, the synthetic events
+wmevents.ClientIconified and wmevents.ClientDeiconified is sent,
+respectively.
+
+** border.BorderClient rewritten
+
+The ancient BorderClient mixin has been rewritten to allow more
+dynamic color choosing schemes.  It should be backward-compatible, but
+for those willing to change their wm scripts it is now possible to
+choose different colors for different windows.
+
+This is handled by letting client filters map to a certain
+BorderColorManager subclass object.  FixedBorderColor gives clients a
+static color, while TitleBorderColor chooses a color based on the
+window title.  This is useful to distinguish different xterm windows,
+if e.g. the current directory is included in the window title.
+
+It should be easy to define your own color managers, to get even more
+dynamic colors.
+
+For details, run "pydoc plwm.border".
+
+
+* Version 2.6a - 7 Apr 2004
+
+This is mostly a bug fix release, to get the latest set of fixes out
+the door.
+
+** Distutils is now used to build and install plwm.
+
+** We now require Python 2.0 or later. Python 1.5 is no longer supported.
+
+** Mike Meyer (mwm@mired.org) is now administering PLWM.
+
+** New mixin: mixer.py.
+
+This is a new mixin for controlling the audio mixer. Currently, it
+only supports "rexima", but it should be easy to extend to "aumix"
+etc.
+
+** Menu screen mixin is now configurable.
+
+The menu screen mixin has been extended to use menu_font,
+menu_foreground, menu_background, menu_bordercolor, and
+menu_borderwidth when it draws menus on the screen. The default is
+9x15Bold, black, white, black and 3. menu_seconds is the number of
+seconds the menu will be onscreen before it vanishes of it's own
+accord. The default value is 0, which means to stay until a selection
+is made or the menu is cancelled.
+
+** Message screen mixin is now configurable.
+
+The message screen mixin can now be configured with message_font,
+message_foreground, message_background, message_bordercolor and
+message_borderwidth. message_seconds controls how long the message is
+displayed for, with a default value of 5 seconds.
+
+** Screen.system now allows i/o redirection.
+
+The Screen.system method now takes an extra argument, redirect. This
+argument should either be a single integer between 0 and 2 inclusive,
+or a tuple of such integers. These fd's are redirected to pipes, and
+the resulting pipes are returned as a three-tuple. Supplying redirect
+implies that the command will be run in the background.
+
+* Version 2.5 - 6 Mar 2002
+
+This is mostly a get-it-out-of-the-door release, and is identical with
+the preceeding 2.5 alpha.  Some of the new features are not
+documented, so you may have to resort to reading code to use them.
+
+** Abstraction for internal windows
+
+The core class Client now subclasses the new class Window.  The new
+class InternalWindow is also a subclass of Window.  The main advantage
+of this is that wm-internal windows (e.g. the ModeWindow) can be
+wrapped in an InternalWindow.  The internal window can use the same
+event system as Client windows, and also use a number of methods
+previously only provided for Client windows.
+
+** New extensions: message and input
+
+Message is an abstraction refactored out of menu for displaying
+windows containing text.  The new input extension uses this to display
+a text input window.  It can e.g. be used to let the user input
+shell commands or python code.
+
+** New mode window mixin: mw_load
+
+mw_load displays the current load average in the mode window.  It
+has support for Linux /proc and the more general Unix
+/usr/bin/uptime.
+
+** Code reorganization: plwm.misc
+
+The module plwm.misc contains various useful hacks.  Most of these
+were previously found in the example wm petliwm.py, but having them
+here makes them easier to use in other peoples wms.  Take a look in
+the file to see what is available, it is self-documented.
+
+** New feature: Screen border allocation
+
+The Screen class now provides the method alloc_border(), which can be
+used by mixins to reserve screen area at the edges.  Client windows
+will not be allowed to cover these borders.  Initially it is used by
+the mode window.
+
+
+* Version 2.4 - 12 Dec 2001
+
+** New extensions: panes and menu
+
+Mike Meyer has written two nice extension modules.  Panes provides a
+ratpoison-ish, or screen(1)-ish, or Emacs-ish way of handling windows
+on the screen.  See the comment at the top of plwm.panes for more
+details, and try out the example window manager example/plpwm.py.
+
+Menu opens a keyboard-controlled menu in the middle of the screen, and
+can be used to start applications, selecting among windows and other
+niceties.
+
+** Focus management rewritten
+
+There is now a WindowManager method set_current_client() which takes
+care of all the details in switching focus between different clients.
+
+The extension module plwm.focus now uses the new method, much reducing
+the former clutter in that module.  The mixin FocusHandler has been
+renamed to PointToFocus, and the mixin FocusClient is no longer
+needed.  If the old names are used, a warning is printed.
+
+The method move_focus() has been moved to the new mixin MoveFocus.
+
+** Internal events collected in plwm.wmevents, and also documented
+
+The various internal events previously scattered over plwm.wmanager
+and plwm.focus has now been collected in the new module plwm.wmevents.
+
+They have also been documented in the manual chapter "Core Events".
+
+** Dropped support for old xmodewin
+
+The old stand-alone xmodewin, the utilities xmwbiff and xmwclock, and
+the related modules modewinctl and modetitle have been removed.  They
+were superceded by the plwm.modewindow and plwm.mw_* extension modules
+in 2.1.
+
+** View remembers focus, and stores info at exit
+
+Views now also remembers the focused client, and is thus able to give
+it focus no matter where the pointer is located.  Very nice when using
+SloppyFocus.
+
+The current view configuration is now stored when exiting the window
+manager, in addition to when switching views.  This allows even more
+view configuration to be restored when PLWM is restarted.
+
+** CycleActivate improved
+
+plwm.cycle.CycleActivate has been improved to work well with both
+iconified and deiconified clients.  Inspiration came from Meik
+Hellmund.
+
+** Fixed bug in Screen.system()
+
+If PLWM was killed by a signal, all programs started with
+Screen.system() also got that signal.  This has been fixed by creating
+a new process group for the child process executing the program.
+
+** WindowOutlineClient added
+
+An outline client mixin drawing the outline using a set of windows has
+been added.  It is less effecient than the XorOutlineClient, but
+avoids some of its problems.  See the section for the "outline"
+extension in the documentation for further details.
+
+** NetBSD APM interface added to mw_apm
+
+The modewindow APM mixin can now fetch battery status both from Linux'
+/proc/apm and NetBSD's /dev/apm, thanks to Henrik Rindlöw.
+
+** Finalization methods added
+
+Mixin classes can now clean up after themselves, by providing the
+appropriate method of __wm_del__, __screen_del__, or __client_del__.
+
+** Bugfix in MapRequest handling
+
+An if-expression missed a "not", which resulted in that windows
+created after PLWM has started always was mapped, no matter the value
+of Client.start_iconified.  Consequently existing windows' map
+requests always was ignored.  The first effect is a bug, the second
+one turned out to be the correct behaviour.  (This is because Netscape
+6.1 abuses window mapping by attempting to deiconify whenever a web
+page has loaded.  This is _not_ what you want if the Netscape windows
+is iconified because it is on another view than the current one...)
+
+** Python 2.1 incompitability fixed
+
+It turned out that Python 2.1 is very picky about the __all__ list in
+__init__.py, so installation failed since a now removed module was
+listed in it.  Fixed now.
+
+
+* Version 2.3 - 29 Aug 2001
+
+** Documentation revised
+
+The oldest part of the documentation have been revised for grammar,
+correctness and prettyness.
+
+** Key handling modified
+
+The key handling of keys.py has been modified so that keymaps can now
+be bound to specific screens or windows.  For the first time in the
+history of PLWM, this is a modification that is backward-compatible.
+However, when the old interface is used, a warning is issued.
+
+** Focus tracking conforms better to ICCCM
+
+focus.py has been somewhat revised to comply more fully with ICCCM.
+Now no-input clients will never get focus, which is required for
+applications like xvkbd.  This introduces a new WindowManager
+attribute: current_client.  This should replace most instances where
+focus_client previously was used.
+
+A new event is sent when focus changes: CurrentClientChange.  The
+modestatus.py code that displays the currently active client has been
+rewritten as a result of this: the Screen mixin ModeFocusedTitle is
+now replaced by the Client mixin ModeFocusedTitleClient together with
+the new Screen mixin ModeFocusedTitleScreen.
+
+** New modewindow module: mw_apm
+
+mw_apm displays the battery status of laptops, by reading from the
+special file /proc/apm provided by Linux systems.  It should be easy
+to extend the module to support other APM systems.
+
+
+* Version 2.2 - 6 Feb 2001
+
+** Complete documentation available
+
+The documentation has been extended with detailed descriptions for all
+relevant extension modules, plus a chapter on client filters.  Now
+there are no excuses for not writing your own plwm.py!
+
+** Changed default window manager
+
+The old default window manager, examples/petliwm.py, has been
+transformed into something not necessarily useful for other people
+than Petli himself, so now examples/examplewm.py is the default
+instead.  It has the same key bindings as the old petliwm.py, though,
+so most default window manager users will not notice any difference.
+
+** Event system improvements
+
+The core event system has been extended to provide support for file
+events.  This allows events to be generated when a file is ready for
+reading or writing.  Also, a bug causing the modewindow clock to
+freeze has been fixed.
+
+** Functionality to inspect the internals of a running PLWM
+
+The module plwm.inspect together with the utility inspect_plwm can be
+used to inspect and modify the internals of a running PLWM.  This can
+be thought of as telnetting, or logging in, to the window manager.
+You get a prompt, and any entered expression is evaluated inside the
+running window manager.  See the documentation for details.
+
+** Modewindow cleanups
+
+Modewindow is a little cleaner coded, and now avoids redrawing more of
+the modewindow than necessary.  A single Message object can also be
+added to several modewindows.
+
+** Key grabbing improved
+
+PLWM now grabs all keys that have a certain keysym, not just the first
+one.  PLWM also knows about shifting, so a handler for C_Q is
+equivalent to C_S_q.
+
+** move_focus bug fix
+
+move_focus failed to move focus when there was only one mapped
+window.
+
+
+* Version 2.1 - 12 Jan 2001
+
+** Python 2.0 fixes.
+
+Some incompatibilities with Python 2.0 has been fixed.
+
+** Modewindow is now a PLWM module.
+
+xmodewin has been replaced by the module plwm.modewindow.  It contains
+a Screen mixin which opens a modewindow on all screens, removing the
+need for separate xmodewin instances.  xmwbiff and xmwclock has also
+been replaced by the modules plwm.mw_biff and plwm.mw_clock,
+respectively.  These contains WindowManager mixins that perform those
+functions, using plwm.modewindow.
+
+The reason for this change is the quite large footprint of Python
+Xlib, which causes even these very modest applications to be some 3Mb
+large.  This makes a PLWM environment somewhat more lightweight.
+
+** keys: support for handling KeyRelease events.
+
+The keys.KeyHandler has been extended to allow methods to be bound to
+key releases, and not just key presses.  This is done by prefixing the
+KeyHandler method name with "R_", e.g. "R_C_Return".
+
+
+* Version 2.0 - 8 Jan 2001
+
+** Testing completed.
+
+PLWM 2.0a1 has been run for a while, and has uncovered a number of
+bugs and performance problems with Python Xlib.  These have been fixed
+in version 0.7 of Python Xlib.  No bugs have been found in PLWM 2.0
+(relatively easy, as there is no new functionality), so lets call this
+a real release.
+
+
+* Version 2.0a1 - 21 Dec 2000
+
+** plxlib no more
+
+PLWM has been rewritten to use the Python X Library, instead of the
+disgusting pile of C code that was plxlib.  Well, it seems to work...
+

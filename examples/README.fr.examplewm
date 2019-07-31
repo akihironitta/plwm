@@ -1,0 +1,48 @@
+** Comment utiliser pointless window manager petliwm:
+** (Ecrit par Kamel Sehil <skel@skel.org>)
+
+Le pointeur de la souris peut etre deplaces avec les touches du paves
+numeriques(KP_1 a KP_9)
+
+
+Ctrl+{KP_Left, KP_Right, KP_Up, KP_Down} change le focus a la
+prochaine fenetre qui se trouve a peu pres a gauche , droite , en haut
+, en bas de la fenetre en focus actuellement, comme Ctrl-< resp
+Ctrl-Shift->.
+
+KP_5 permet de passer en mode "deplacer-retailler" pour la fenetre en
+focus.  La fenetre peut etre deplacer en se servant des touches KP_1 a
+KP_9, agrandir avec Shift + KP_*, reduire avec Ctrl + KP_*.  valider
+la nouvelle position en appuyant de nouveau sur KP_5, ou Escape pour
+annuler.
+
+
+Cacher ou Montrer une fenetre (par rapport a une autre) avec KP_Enter.
+
+Iconifier une fenetre avec KP_0 (KP_Insert)
+
+Deiconifier une fenetre avec Ctrl+Tab.  Appuyer sur Tab (or Ctrl+Tab)
+pour passer a la fentre iconifier suivante,et Shift+Tab pour la
+precedente.  Appuyer sur Return pour selectionner et deiconifier une
+fenetre ou Escape pour annuler .
+
+Effacer une fenetre avec Ctrl+KP_Delete. Detruire une fenetre avec
+Ctrl+Shift+Delete.
+
+Lock l'ecran avec Ctrl+KP_Subtract. (necessite xlock)
+
+Creer une nouvelle Vue (un espace de travail (workspace)) avec
+Ctrl+KP_Add.  Passer a la Vue prochaine avec KP_Add, a la precedente
+Vue avec KP_Subtract.  Une Vue est effacee si elle est vide quand on
+la quitte.
+
+F1 passe la prochaine Vue contenant un xterm, F2 un emacs, F3 un
+netscape.  Shift+F{1,2,3} lance un nouvel xterm , emacs ou netscape et
+Ctrl+Shift+F{1,2,3} cree une nouvelle Vue et lance le programme.
+
+Shift+F5 and Shift+F6 tag les Vue avec les touches "F5" and "F6",
+respectivement.  F5 and F6 vous emmeneront a la vue taguees avec les
+touches respectives
+
+Quittez le window manager avec Ctrl+Meta+Escape.
+

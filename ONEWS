@@ -1,0 +1,241 @@
+-*-outline-*-
+
+* Version 1.4 (15 Dec 2000)
+
+** PLWM
+
+*** Abstraction: Client filters
+
+Client filters are a way to create arbitrarily complex conditional
+expressions to select clients.  This can be used to e.g. cycle among
+all iconified windows with a name matching "xterm*".
+Client filters are located in plwm.cfilter, see the documentation
+in it for details.
+
+All code which previously used Client.client_in_list (e.g. the client
+attributes no_border_clients, start_iconified) and also some new
+pieces of code now use client filters.  The query_clients methods in
+WindowManager and Screen also uses client filters now.
+
+*** Client cycle module completely rewritten
+
+Module plwm.cycle has been completely rewritten.  It is now much more
+general and uses the new client filters to select which filters to
+use.  A keyhandler template class, plwm.cycle.CycleKeys is also
+provided to make it easier to define cycling key bindings.
+
+*** New feature: mouse clicks can be simulated
+
+If the XTEST extension is available (see below), mouse clicks can be
+simulated by calling the function WindowManager.fake_button_click().
+More complicated button press simulations could also be implemented by
+the adventurous.
+
+*** Better keymaps: `Any' modifier
+
+Key handlers can now be bound to a certain key, ignoring any
+modifiers.  This is done by using the special prefix `Any_' for key
+handlers, e.g. `Any_F9'.
+
+*** Abstraction: outline drawing as client mixin classes
+
+Outline drawing has been generalised into client mixin classes.  This
+means that any code which needs to draw an outline simply calls
+methods on the client.  It is therefore now easy to write different
+outline mixin classes.  Currently the classic xor outline is provided,
+but future outline methods could, e.g., use a shaped window or a
+number of small windows, one for each line.
+
+
+** plxlib
+
+*** New Display methods: FakeKeyEvent and FakeButtonEvent
+
+If the X library support the XTEST extension, the Display methods
+FakeKeyEvent and FakeButtonEvent are available.  These can be used
+to simulate user input.  
+
+*** New Window method: Reparent
+
+The Window method Reparent has been implemented.  This will make it
+possible to have real window frame support in PLWM, but for now it is
+only used to work around a bug in a stupid client application (Sun's
+Java AWT for Linux).
+
+
+* Version 1.3 (4 Jul 2000) 
+
+** PLWM
+
+*** Abstraction: template key binding class for moveresize
+
+plwm.moveresize.MoveResizeKeys is a template class providing functions
+for all move and resize functions.  To use it, simple subclass it and
+assign the functions to key bindings.  This is meant to make it easier
+to define your own plwm.py keybindings, and more template classes will
+probably follow.
+
+*** Bug fix: Resizing windows with size hints (WMNormalHints)
+
+In some quite obscure situations the size hints (WMNormalHints) on
+windows wasn't used correctly when moving or resizing.  This meant
+that windows (typically Emacs windows created with C-x 5 2) became a
+little too large, quite ugly.  A more careful study of the ICCCM
+pointed out the misusage.
+
+
+** plxlib
+
+*** Ridiculously large memory leaks fixed
+
+A misunderstanding of the Python object C API meant that window
+objects never freed their memory when garbed.  This is now fixed, and
+means that the large and annoying memory leaks which previously had
+been attributed to circular reference chains are finally fixed.
+Additionally, a few cases of incorrect refcounts (too high) has also
+been fixed, again mostly affecting window objects.
+
+*** New module: XK
+
+XK provided constants for keysyms.
+
+*** Small new function: Window objects can be hashed
+
+A hash function is now provided for window objects, which, together
+with the compare function, means that window objects can be used as
+dictionary keys.
+
+
+** Miscellaneous
+
+*** New configure flag: --with-python
+
+The new configure script flag --with-python tells PLWM to use a
+specific Python binary.  Can be used if Python isn't in your $PATH, or
+if you want to use a special Python, e.g. one with refcount debugging
+enabled.
+
+
+
+* Version 1.2 (4 Apr 2000)
+
+** PLWM
+
+*** New feature: window manager status display.
+
+The window title display in an xmodewin has been incorporated in a
+new, more flexible system.  PLWM can now display a status message
+about what it is doing, and temporarily switch this to some other
+message temporarily.  Typically, the title of the currently focused
+window is displayed by default.  But when moving/resizing a window it
+is replaced with the title and current geometry of the moved/resized
+window.
+
+There are currently no other modules using of this feature, but more
+will probably follow.  An example: when deiconifying, display the
+title of the currently selected window.
+
+*** Yet more memory leaks fixed.
+
+Those annoying circular references continue to hog memory.  This time
+it was the Client objects which never got garbed because of the
+circular reference Client -> WindowDispatcher -> Client method ->
+Client.  Solved by having the Client object dropping the reference to
+the WindowDispatcher when its window is withdrawn.
+
+
+** Utilities/plxlib
+
+*** Better handling when no X resources are set.
+
+xmodewin, xmwbiff and friends crashed at startup if no X resources had
+been set with xrdb.  The function plxlib.GetStringDatabase is now more
+permissive and allows the input argument None, which solves this
+problem.
+
+
+** Miscellaneous
+
+*** Fully controllable ./configure
+
+./configure now has the option --with-python-path which controls where
+the plwm and plxlib modules is installed.  This path does not have to
+be in sys.path by default, the various PLWM programs will insert it if
+necessary.
+
+*** Better installation
+
+The install target now depends on all.  All modules will be compiled
+at installation.
+
+
+* Version 1.1 (24 Feb 2000)
+
+** PLWM
+
+*** Better documentation.
+
+The documentation (doc/plwm.texi) has been revised and extended, most
+importantly with a section on how to actually use PLWM and the various
+utilities together.  The Makefile now contains rules for building
+PostScript and HTML in addition to info files.
+
+*** Module import bug fixed.
+
+Embarrasingly, when changing to module layout to use packages I forgot
+to update an import statement in modetitle.py.  I didn't find this
+myself because an old PLWM installation lurked in a dark corner of my
+$PYTHONPATH. 
+
+*** Multihead has been tested, bugfixed and now actually works.
+
+Multihead required two improvements to the core classes.  First, event
+handling was modified to make a global, screen-independent
+EventDispatcher possible.  Second, instaed of using os.system to run
+program PLWM now has a system call for the screens.  This system sets
+the $DISPLAY correctly, and also have some nice bells-and-whistles
+(unused right now, however).
+
+*** Memory leak fixed.
+
+There was a memory leak in the KeyHandler class, caused by a nasty
+circular reference preventing KeyHandler objects to be deleted.  So
+each time one moved a window or deiconified a window, a few kilobytes
+was lost.
+
+*** Better font and color handling.
+
+The font and color allocation routines have been rewritten to better
+use a fallback font or color.  This means that PLWM will not crash
+disgustingly just because a font cannot be found, instead using
+"fixed".  Fonts and colors are now set with standard X resources
+instead of using methods in the plwm.  This makes it easier to have a
+single PLWM executable for different environments.
+
+*** More view featuritis.
+
+Views can be tagged with arbitrary strings.  You can then jump to a
+view based on these tags, similar to the way you could previously
+jump to a view based on the clients on it.
+
+
+** Utilites
+
+*** xmodewin and wmm
+
+Easier to use in new environments: if the desired font doesn't exist
+they use "fixed" instead.  wmm doesn't crash if its configuration file
+.wmmrc doesn't exist, and uses a default configuration instead.
+
+
+** Miscellaneous
+
+*** Build procedure
+
+A common error is that the development files of Python isn't
+installed.  The ./configure script now detects this and prints a
+helpful message.
+
+* Version 1.0 (8 Jan 2000)
+
+First public release.

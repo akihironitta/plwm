@@ -1,0 +1,33 @@
+
+             Installation of the Pointless Window Manager
+
+* Requirements
+
+PLWM requires Python 2.0 or newer, which can be downloaded from
+http://www.python.org/.  It has been tested with Python 2.0 through 2.6.
+
+It also requires the Python X Library 0.14 or newer, which can be
+downloaded from http://python-xlib.sourceforge.net/.
+
+
+* Configuring
+
+Configuration is done by the Python distutils package as part of the
+installation process.
+
+
+* Building
+
+No building is required, as there's no C code in PLWM. PLCM (the Pointless
+Component Manager), on the other hand, does require building. To build it,
+simply change to the 'plcm' subdirectory and run:
+
+    make
+
+
+* Installing
+
+As root, just type:
+
+    python setup.py install
+

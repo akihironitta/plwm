@@ -1,0 +1,28 @@
+From mail from Peter Liljenberg when the topic of a backwards
+incompatible rewrite came up. He also included the idea found in
+events.txt.
+
+ * Get rid of the entire mixin mechanism except when they actually add
+functionality to e.g. a Client object.  Instead, let each little class
+that handles some function listen to AddClient events, and when that
+happens register event handlers for that new client object (using the
+mechanism above).  Some base class can be written to do the
+AddClient/RemoveClient event listening.
+
+ * Add some kind of proxy support, or some other abstraction to allow
+decorations or other manipulations of how a client window is presented
+(is also easier once the
+
+ * Some kind of rudimentary widget kit would be helpful for
+decorations/menues etc.  I've seen attempts at supporting python-xlib
+with generic widget kits, maybe they can be used?  If so, one might
+have to use the kits event model too.
+
+The original discussion was prompted by:
+
+David Bronke wanting to do window decorations, which Peter Liljenberg
+did with a proxy object for the Window, and Mike Meyer wanting to make
+the window manager xinerama aware, which has similar problems: a
+screen can be an X screen, or a Xinerama screen (a viewport into an X
+screen).
+

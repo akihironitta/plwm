@@ -1,0 +1,48 @@
+** How to use the pointless window manager petliwm:
+
+The mouse pointer can be moved with the numeric keyboard (KP_1 to
+KP_9).  Mouse clicks can be simulated by pressing F9, F10 or F11, for
+button 1, 2 or 3, respectively.  
+
+Ctrl+{KP_Left, KP_Right, KP_Up, KP_Down} will move the focus to the next
+window approximately to the left, right, up or down of the currently
+focused window, as will Ctrl-< resp Ctrl-Shift->.
+
+KP_5 switches to outlined move-resize mode for the focused window.
+The window is moved by KP_1 to KP_9, enlarged with Shift + KP_*, and
+shrinked with Ctrl + KP_*.  Use the new position by pressing KP_5
+again, or abort with Escape.
+
+Raise or lower a window with KP_Enter.
+
+Iconify windows with KP_0 (KP_Insert).
+
+Deiconify windows with Ctrl+Tab.  Press Tab (or Ctrl+Tab) to step to
+the next iconified window, and Shift+Tab to the previous.  Press
+Return to select and deiconify a window, or Escape to cancel.
+
+Delete a window with Ctrl+KP_Delete.  Destroy a window with
+Ctrl+Shift+Delete.
+
+Lock the screen with Ctrl+KP_Subtract.
+
+Create a new View (a "workspace" with extra bells and whistles) with
+Ctrl+KP_Add.  Jump to the next view with KP_Add, to the previous view
+with KP_Subtract.  A view is removed if there are no more visible
+windows when you leave it.
+
+F1 jumps to the next view containing an xterm, F2 to an Emacs, and F3
+to a Netscape.  Shift+F{1,2,3} starts a new xterm, Emacs or
+Netscape, and Ctrl+Shift+F{1,2,3} creates a new view and then starts
+the program.
+
+Shift+F5 and Shift+F6 tags that view with the strings "F5" and "F6",
+respectively.  F5 and F6 will then jump to next view which is tagged
+with the corresponding string.
+
+Quit the window manager with Ctrl+Meta+Escape.
+
+To let clients recieve key events normally catched by PLWM, press
+Shift-Pause.  This will bypass all key event handling in PLWM until
+Pause is pressed.  This state is indicated by the message [Bypassing]
+in the modewindow.

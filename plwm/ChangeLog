@@ -1,0 +1,743 @@
+2002-07-13  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* mixer.py: New mixin for controlling the audio mixer.  Currently
+	it only supports "rexima", but it should be easy to extend to
+	"aumix" etc.
+
+2002-07-12  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Screen.system): 
+	(WindowManager.sigchld_handler): This was messy: since we don't have
+	reliable signal blocking, we have to do some quite complicated
+	book-keeping to ensure that we neither lose foreground processes
+	exit status, nor hang forever.
+
+	* mw_load.py (UnixLoad.get): Use wm.system redirection to avoid
+	using intermediate file.
+
+	* wmanager.py (Client.follow_size_hints): 
+	(Window.keep_on_screen):
+	If client filter Window.full_screen_windows is true, the window is
+	allowed to occupy the entire screen.  Otherwise it will be cropped
+	by allocated edge area.
+
+	(Screen.system): Support redirecting stdio, to allow interaction
+	between PLWM and invoked command.
+
+2002-07-07  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Screen.handle_map_request): Only map managed
+	windows on MapRequest if the user allows it.
+
+2002-03-04  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* border.py (BorderClient.__client_init__):
+	Set border_[focus]color_name to None by default, so check against
+	that.  Also remember to set border_focuscolor event if
+	border_focuscolor_name is not set.
+
+	* wmanager.py (Screen.handle_client_message): Fetch a client
+	instead of a window, and make sure that it exists.
+
+	(Screen.remove_window): Check for null windows.  Also pass the
+	RemoveClient event manually to the deleted client.
+
+2002-02-22  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* input.py (modeInput.__init__): Rename "ignored" argument to
+	"length" as in inputWindow, to allow keyword argument
+	comptibability. 
+
+2002-01-19  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Window.raiselower): New method to raise the window
+	if it is below any other, or lower it if it is on top.
+
+	* misc.py: New file, containing various useful mixins and other
+	functions.  Most of them comes from petliwm.py.
+
+	* wmanager.py (Screen.alloc_border): New method that allows mixins
+	to reserve a part of the root window located at one of the edges.
+	(Window.keep_on_screen): Use the new Screen attributes root_x and
+	root_y for positioning.
+
+	(Client.__init__): Kludge to always reparent client windows, to
+	fix broken widget sets.
+
+2002-01-14  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* cfilter.py (StaticClientFilter): Let all static filters inherit
+	this base class, improving performance a bit by binding the __call__
+	method at initialization.
+	
+	(is_client): New filter that is true for all client
+	objects. 
+	
+
+	* wmanager.py (Client.configure): 
+	(Window.configure): Update configure to the internal windows. 
+
+2002-01-10  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Client.__del__): Should not be a Window method. 
+
+	(Screen.__init__):
+	(Screen.add_client):
+	(Screen.remove_window):
+	(Screen.add_internal_window):
+	(Screen.get_window):
+	(Screen.is_client):
+	(Screen.is_internal_window):
+	(Screen.get_client): Unified handling of external and internal
+	windows.  Makes event handling a bit less convoluted.
+
+	(Client.withdraw):
+	(Window.withdraw): Split into window-general and client-specific
+	methods.
+
+	(Window.raisewindow):
+	(Window.lowerwindow): These are nice to have both on Window and
+	Client.
+
+	(InternalWindow): Subclass to Window, so that we can identify
+	internal windows.
+	
+2001-12-12  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* __init__.py (__all__): Added mw_load module, contributed by Meik
+	Hellmund. 
+
+2001-12-11  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Client): Removed some dead event handlers.
+
+	(Screen.handle_circulate_request): 
+	(Screen.handle_configure_request):
+	(Screen.event_to_change): Changed event_to_change to a Screen
+	method, and added the flag "allow_raise_requests" to be able to
+	ignore raise requests.
+
+2001-12-09  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* event.py (SlaveDispatcher.__init__): 
+	Make sure we copy slave list, since we may modify it later.
+	
+2001-12-05  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* panes.py (panesManager.panes_next): 
+	(panesManager.panes_prev): 
+	* menu.py (MenuKeyHandler._down): 
+	(MenuKeyHandler._up): Skip -= and +=, to allow Python 1.5.2
+	compitability. 
+
+	* panes.py (Pane.deactivate): 
+	(Pane.do_activate): Use the new focus code in wmanager.
+
+	* views.py (View): Keep track of the focused client on the view.
+	(ViewHandler.view_handle_quit): Store configuration when window
+	manager exits.
+
+	* event.py (SlaveDispatcher.add_master): New method, allowing
+	wm.dispatch to exist when Screens are created.
+
+	* focus.py: Rewritten to use the new focus code in wmanager.
+	FocusHandler has been renamed to PointToFocus, and FocusClient is
+	no longer used.  The old name will remain for some time for
+	backward compitability, but will emit a warning when used.
+	move_focus() is now in a separate mixin, MoveFocus.
+
+	* wmanager.py (WindowManager.set_current_client): New method that
+	handles switching between clients.  Use this to give focus to a
+	certain client.
+	
+	(Client.lose_focus): 
+	(Client.get_focus): Helper functions for client switching.
+
+	* wmevents.py: Various internal events generated by the window
+	manager core is collected in this new file.  They have been moved
+	from wmanager.py and focus.py.
+
+2001-11-30  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* cycle.py (CycleActivate): Improved to work as expected both for
+	mapped and iconified clients.  Inspiration came from Meik Hellmund. 
+
+2001-11-28  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Screen.system): Create a new process group for the
+	child process.  This ensures that any signals sent to the parent
+	from the terminal (e.g. SIGINT) is not also distributed to the
+	processes started from the window manager.
+
+2001-11-24  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Client.__del__):
+	(Screen.__del__):
+	(WindowManager.__del__): Provide mixin classes with finalization
+	methods.
+
+	* outline.py (WindowOutlineClient): Wrote a window-based outline
+	mixin.
+
+2001-11-21  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Screen.handle_map_request): Further hack:  at least
+	netscape abuses maprequests, so test disallowing
+	established windows to map themselves again.
+
+2001-11-13  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* wmanager.py (Screen.handle_map_request): The if-expression
+	missed a "not", so we always called deiconify on new clients, when
+	we instead should call it for existing clients.  Explains why
+	the Client attribute start_iconified only worked at PLWM startup,
+	not for windows created when PLWM is running.
+
+2001-10-16  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* mw_apm.py (NetBSDIoctlAPM.do_ioctl): Moved open() into try
+	block, so that interface detection properly fall through when
+	the device file is not present.
+
+2001-10-15  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* mw_apm.py (NetBSDIoctlAPM): APM interface for NetBSD,
+	contributed by Henrik Rindlöw.
+
+2001-08-24  Peter Liljenberg  <peter.liljenberg@esdgkonsult.com>
+
+	* keys.py: Subtly rewritten interface now allows KeyHandler maps
+	to be installed not only windowmanager-wide, but also on specific
+	screens or clients.  This is backward-compatible with the old
+	keys.py interface, but a warning is issued whenever that is used.
+
+Tue Feb 20 14:59:28 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (WindowManager.handle_event):
+	Added support for screen attribute of events, so events can be
+	sent to a specific screen.
+
+	* focus.py (FocusClient.__client_init__): 
+	(CurrentClientChange): 
+	(FocusHandler.focus_to_ptr): 
+	Split client focus model from having a single client which both
+ 	have input focus and is the current client, into tracking which
+ 	client which have input focus, and which client actually contains
+ 	the pointer.  This is needed for clients with the "no input" focus
+ 	model to work.
+
+	Most instances of wm.focus_client should be replaced with
+ 	wm.current_client.  The ClientFocusIn and ClientFocusOut events
+ 	are probably not that useful anymore, instead CurrentClientChange
+	might be more interesting.
+	
+	* modestatus.py (ModeFocusedTitleClient): 
+	(ModeFocusedTitleScreen): 
+	* moveresize.py (MoveResizeKeys.__init__):
+
+	Updated to reflect the focus model changes.
+
+2001-02-02    <petli@cendio.se>
+
+	* modewindow.py: Some rewrites, to allow a single message to be
+	added to several modewindows.  Also the framework for using the
+	nice value has been removed, until something actually is
+	implemented.  Redrawing made more effective, as only the relevant
+	part of the modewindow is cleared, and not the entire one.
+
+2001-01-23    <petli@cendio.se>
+
+	* event.py (EventFetcher.next_event): Fix for a bug introduced by
+	the addition of FileEvents; where PLWM would be one X event behind
+	most of the time, due to a "i > 1" where it should be "i > 0".
+	Sigh.  Some minor cleanups too, to make the loop a little more
+	effective.
+
+Tue Jan 23 16:31:37 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* keys.py (KeyHandler._buildmap): Better keycode handling, now it
+	grabs all keycodes which have bound the keysym, not just the
+	first.  If the keysym is bound in the shift position, add
+	ShiftMask too.
+
+2001-01-22    <petli@cendio.se>
+
+	* cfilter.py (all, none): Synonyms for true and false,
+	respectively. 
+
+2001-01-21    <petli@cendio.se>
+
+	* focus.py (FocusHandler.move_focus_ignore_clients):  Attribute
+	moved to the FocusHandler, instead of being a FocusClient
+	attribute.
+
+Wed Jan 17 16:23:48 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* event.py (new_event_type): New function to return unique event
+ 	types.
+
+	* inspect.py (InspectServer.inspect_enable): 
+	(InspectServer.inspect_disable): 
+	(InspectServer.inspect_toggle):
+	Allow on-the-fly enabling or disabling of the Inspect function,
+	for added security.
+
+Mon Jan 15 12:06:10 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* event.py (EventFetcher.next_event): Fixed a case when next_event
+ 	erroneously return None when a real event was expected, introduced
+	by the FileEvent support.
+
+	(EventFetcher.add_timer): Remove all cancelled timers when a new
+	timer is added.  Not doing this resulted in the possibility that a
+	cancelled timer blocked an uncancelled timer, with the symptom
+	that mw_clock stopped.
+
+2001-01-14    <petli@cendio.se>
+
+	* event.py (EventFetcher.next_event): 
+	(EventFetcher.add_file): 
+	(FileEvent):
+	Added support for file events to the EventFetcher.  File events
+	are generated when files are ready to be read or written.
+
+	* inspect.py: New WindowManager mixin, which allows a special
+	client program to evaluate Python expressions within PLWM.  This
+	can be used to inspect PLWMs data structures (hence its name) and
+	also to change things in the PLWM.
+
+2001-01-13    <petli@cendio.se>
+
+	* focus.py (FocusHandler.move_focus): Allow focus to change even
+	when there is only one client.  Up until now focus couldn't change
+	if there was only one window, resulting in it not being possible
+	to activate it or normalize pointer position.  This bug wasn't
+	found previously, since there always was the xmodewin client on
+	all screens...
+
+	* mw_biff.py (ModeWindowBiff.__wm_init__): Added check for unset
+	$MAIL.  Print an error and disable mw_biff if no mailspool can be
+	found. 
+
+Fri Jan 12 13:20:13 2001  Peter Liljenberg  <petli@cendio.se>
+
+	* keys.py (KeyHandler._keyevent): Replaces _keypress, as we now
+	listen for both KeyPress and KeyRelease events.  The special
+	modifier "R_" is used to add methods for keyrelease events.
+
+2001-01-12    <petli@cendio.se>
+
+	* modestatus.py: 
+	* modewindow.py: 
+	* mw_clock.py: 
+	* mw_biff.py: 
+	Move the separate utilities into PLWM proper, to avoid having four
+	processes a 3Mb hanging around for these trivial services.
+	Support for old xmodewin is now broken, as modestatus has been
+	changed to use modewindow instead of modewinctl, and their
+	interfaces are not similar.  Also, the new modewindow doesn't
+	listen for properties, so its fully PLWM internal.
+	
+2001-01-11    <petli@cendio.se>
+
+	* wmanager.py (Screen.add_internal_window): 
+	(Screen.remove_internal_window): 
+	(Screen.get_internal_window): 
+	(WindowManager.handle_event): 
+	(Screen.handle_event): 
+	(Client.handle_event):
+	Added support for low-level internal windows, which simply are
+	assumed to have an handle_event method, like clients.
+
+	* wmanager.py (WindowManager.brave_loop): 
+	(WindowManager.loop): 
+	(WindowManager.quit):
+	Replaced ad-hoc method of quitting PLWM with the more elegant
+	quit() method.
+
+	* outline.py (calculate_parts):
+	* views.py (ViewHandler.view_create): Update append calls to
+	Python 2.0 semantics. 
+
+2001-01-10    <petli@cendio.se>
+
+	* wmanager.py (Client.handle_property_notify): Only listen for
+	changes to WM_NORMAL_HINTS, and ignore all other ICCCM
+	properties.
+
+2000-12-14    <petli@cendio.se>
+
+	* wmanager.py (Client.client_in_list): Obsoleted by client
+	filters, and hence removed.
+
+	(WindowManager.brave_loop): Catch KeyboardInterrupt, to exit
+	quietly and nicely on Ctrl-C.
+
+	* cycle.py: Completely rewritten.  There is now a general
+	Cycle class, using client filters to get the set of clients to
+	cycle among.  A CycleKeys keyhandler template is also provided.
+
+	* moveresize.py (MoveResizeKeys.__init__): Fetch keyboard grabbing
+	errors.
+
+	* wmanager.py (Screen.query_clients):
+	(WindowManager.query_clients): 
+	Use filters instead of the mapped/unmapped arguments.
+
+	(Client.activate): Deiconify if necessary.
+
+Fri Dec  1 13:55:54 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (Client.configure): Uses client_maxsize to limit
+	how large a window is allowed to be when it resizes itself.
+
+2000-11-12    <petli@cendio.se>
+
+	* cycle.py (CycleUnmapped): 
+	* moveresize.py (MoveResizeOutline): Use the new outline
+	functionality. 
+
+	* outline.py: Rewrote Outline class to be a Client mixin class.
+	This makes it easier to replace the outline drawing method,
+	e.g. from xor to shaped windows.
+
+	* wmanager.py (Screen.__init__): Ugly kludge to make sure
+	that wm.current_screen is set when initialising clients.
+
+2000-10-31    <petli@cendio.se>
+
+	* wmanager.py (Client.start_iconified_clients): 
+	* views.py (ViewHandler.view_find_with_client): 
+	(ViewHandler.view_always_visible_clients): 
+	* border.py: (BorderClient.no_border_clients):
+	* focus.py (FocusClient.move_focus_ignore_clients):
+	Converted from old client_in_list() to new filter functions. 
+	
+	* cfilter.py: Added module.
+
+	* keys.py (modifiers): 
+	(KeyHandler._keypress): Added support for the modifier "Any",
+	allowing a key to be bound no matter the modifier state.
+
+Mon Jul 17 17:07:55 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (Client.follow_size_hints): Still more silly size
+	hints bugs.  This time, a window would snap between
+	minsize and 2*minsize, and then allow all sizes above that if a
+	minsize is set but no resize increment.  Fixed by shuffling some
+	code blocks around.
+
+Tue Jul  4 19:36:15 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* focus.py (JumpstartClient.__client_init__): Check that the
+	window will not be iconified on startup before activating it.
+
+Tue Jul  4 19:32:32 2000  Morgan Eklöf <morgan@cendio.se>
+
+        * focus.py(JumpstartClient): New. Windows get focus when opened.
+	
+Tue Jun 27 17:48:09 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (Client.follow_size_hints): Fixed more errors with
+	base sizes.  If no base size is provided, the minimum size should
+	be used instead, and now PLWM does that.
+
+	(Screen._register_cycle_roots): 
+	(Screen._cleanup_cycle_roots): 
+	(WindowManager._cleanup_cycle_roots):
+	(WindowManager._register_cycle_roots): 
+	Added support for circular reference detection with Cyclops.
+	
+
+Mon May 29 14:54:18 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (Client.follow_size_hints): Base width and height
+	was erroneously added to the w/h if size was adjusted to min or
+	max bounds.
+
+Fri May 12 18:07:32 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* moveresize.py (MoveResizeKeys): A template class providing most
+ 	of the code needed in a keyhandler for moving and resizing
+	windows.  The user merely has to subclass it and define key
+	bindings.
+	
+
+Thu Mar 23 11:59:08 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (Client.withdraw): Break circular references in
+ 	self.dispatch when the client is withdrawn to avoid memory leaks.
+
+2000-03-08    <petli@signum.se>
+
+	* modestatus.py: Created.  Improve display of window manager
+	operation, where a default message can be tempararily replaced
+	with other information.  First implementations of this is a new
+	window title display and geometry information when resizing.
+
+	* wmanager.py (Client.get_title): 
+	(Client.base_size): Added.
+	
+
+2000-02-10    <petli@cendio.se>
+
+	* border.py (BorderClient.__client_init__): 
+	* cycle.py (CycleUnmapped.__init__): 
+	Use the rewritten font and color handling.
+	
+	* color.py: Rewritten as font.py.
+
+	* font.py: Fully rewritten.  Out goes the set_font for defining
+	symbolic font names, in goes get_font_res to fetch fonts based on
+	X resources.  Also more stable, by being able to provide default
+	fonts such as "fixed".
+
+	* wmanager.py (WindowManager.add_command_event): 
+	(WindowManager.sigchld_handler): 
+	(Screen.system): 
+	(WindowManager.system): Replace the rather coarse os.system with
+	our own.  Features: DISPLAY can be set to get X clients to appear
+	on the current screen in multihead systems.  When a child process
+	exits an event can be generated to notify modules, e.g. to be able
+	to restart it.
+
+	(Screen.__init__): Start to use resources, still in a quite
+	subdued way.
+
+2000-02-08    <petli@cendio.se>
+
+	* keys.py (KeyHandler._cleanup): Break circular reference to avoid
+	memory leaks: self.rawbindings and self.bindings contain methods
+	instantiated on self, so clear them.  Eeew, that bug was hard to
+	track down...
+
+Thu Feb  3 14:41:52 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* modewinctl.py (ModeWinControl.set_strings): Updated to the new
+	class errors.
+
+Fri Jan 28 16:53:25 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* views.py (View.store_tags): 
+	(View.fetch_tags): 
+	(ViewHandler.view_tag): 
+	(ViewHandler.view_find_tag): 
+	(XMW_ViewHandler.view_xmw_update): 
+	(View.tag): 
+	(View.has_tag): 
+	(View.get_tags): Views can be tagged with an arbitrary string,
+	which can then be used as a search criteria for switching views.
+
+Mon Jan 10 10:41:42 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* keys.py (KeyHandler.__init__): 
+	(KeyGrabKeyboard.__init__): Now takes a WindowManager and an
+	EventDispatcher as arguments, instead of a Screen, to use the
+	better event handling.
+
+	* wmanager.py (Screen.handle_event): 
+	(WindowManager.handle_event): Use the improved event handling by
+	letting the WindowManager keep a dispatcher which sets event masks
+	on all the screens.
+
+	* event.py (EventDispatcher, WindowDispatcher, SlaveDispatcher):
+	Better event handling by abstracting it a bit.
+
+	* modetitle.py: Forgot to adapt to Python packages.
+
+Tue Jan  4 10:39:15 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* border.py (BorderClient.__client_init__): 
+	* focus.py (FocusClient.__client_init__): 
+	* modetitle.py (ModeTitleClient.__client_init__): 
+	Don't mess with calling the __init__ of all client mixin classes,
+	by letting Client.__init__ call all of the special initalisers
+	__client_init__ instead.
+	
+Mon Jan  3 18:58:38 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* views.py (View.enter): 
+	(View.leave): 
+	(View.fetch_winconf): 
+	(View.store_winconf): 
+	(WinConf.get_tuple): Also remember where the pointer is on the
+	screen.  This also required that the view winconf property was
+	redesigned to be able to store more data than just winconfs.
+
+	* wmanager.py (Client.warppointer): Default pointer coordinates
+	can now be specified on a per-client basis.
+
+	* focus.py (FocusHandler.move_focus): 
+	(FocusHandler.get_client_pos): 
+	Move focus between windows, at least
+	vagely based on their screen coordinates.
+
+	* wmanager.py (Client.get_top_edge): 
+	(Client.get_top_edge): 
+	(Client.get_bottom_edge): 
+	(Client.get_left_edge): 
+	(WindowManager.query_clients): Added to facilitate moving clients,
+	changing focus etc.
+
+Mon Dec 20 17:56:44 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (WindowManager.__init__):  When starting, do not add
+	any ole window as a client, just those that seems to have been
+	managed already.  Now Netscape won't flunk out when PLWM is
+	restarted... 
+
+Tue Nov 23 18:00:41 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* keys.py (KeyHandler._internal_timeout): 
+	(KeyHandler.__init__): Fixed memory leak: self.timer.type was
+	self, a circular reference which wasn't broken.  Now
+	self.timer.type is str(self) instead, no reference circles.
+
+Wed Nov 17 11:26:10 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* keys.py (KeyHandler._cleanup):
+	(KeyHandler._internal_timeout): New functions to handle timeouts
+	more gracefully.
+
+	* wmanager.py (EventFetcher.next_event): Make it possible to
+	cancel timer events.  Debug timer events.
+
+	(do_debug): New debugging code.
+
+Fri Nov 12 19:09:45 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* wmanager.py (EventFetcher.next_event): Fix typo to get timer
+	events working. 
+
+Mon Nov  8 10:26:49 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* deltamove.py (DeltaMove.get): Catch overflow error.
+
+1999-10-15    <petli@cendio.se>
+
+	* keys.py (KeyGrabber.__init__): Added wm parameter.
+	(KeyHandler.__init__): Added timeout option.
+
+	* wmanager.py (TimerEvent, EventFetcher): Wrap X event handling
+	in a select loop, thus enabling timer events (and later file
+	events too).
+
+1999-10-14    <petli@cendio.se>
+
+	* wmanager.py (WindowManager.handle_event): 
+	(WindowManager.bad_window_error_handler): 
+	(WindowManager.remove_client): 
+	(Client.withdraw): Don't try to manipulate a withdrawn window if
+	it is destroyed already.
+	(Client.follow_size_hints): Didn't work when WMSizeHint wasn't
+	set. 
+
+1999-10-13    <petli@cendio.se>
+
+	* views.py (View.enter): Skip the old error handling now. Yay!
+
+	* wmanager.py (Client.withdraw): Do housekeeping in withdrawing
+	clients. 
+
+	* wmanager.py (WindowManager.bad_window_error_handler): 
+	(WindowManager.__init__): Handle BadWindow and BadDrawable
+	errors. 
+
+1999-10-07    <petli@cendio.se>
+
+	* wmanager.py (Client.property_notify_event): Ignore BadWindow
+	errors.
+
+1999-10-04    <petli@cendio.se>
+
+	* getxopt.py (stdopts): Provide a dictionary of standard options.
+
+	* wmanager.py (Client.deiconify): 
+	(Client.moveresize): 
+	* views.py (View.enter): Moveresizing can be delayed if the client
+	is iconified.  This is to make it less expensive to change a view.
+
+	* modetitle.py (ModeTitleClient._mtc_property_notify_event): Only
+	update title in mode window if it changed for the focused window.
+
+1999-10-01    <petli@cendio.se>
+
+	* getxopt.py: Written.
+
+1999-09-30    <petli@cendio.se>
+
+	* views.py (View.enter): Ignore BadWindow erros to speed up view
+	change. 
+	(View.leave): Remove WINCONF property so we don't spam the root
+	window with properties.
+	(XMW_ViewHandler): New class.
+
+	* wmanager.py (Client): Check if client is withdrawn
+	before doing anything.  Moved map() and unmap() into deiconify()
+	and iconify().
+
+1999-09-28    <petli@cendio.se>
+
+	* wmanager.py (WindowManager.remove_client): cut'n'paste mistake,
+	used event.window.id instead of c.window.id.
+
+	* deltamove.py: Got zero division error when X time became higher
+	than 0x7ffffff.
+
+1999-09-27    <petli@cendio.se>
+
+	* wmanager.py (Client.unmap): 
+	(WindowManager.handle_event): Correctly handle withdrawn clients.
+	
+	* wmanager.py (Client.follow_size_hints): 
+	* moveresize.py (MoveResize.__init__): Don't calculate
+	diff_widht/diff_height, use WMNormalHints basesize instead.
+
+	* modewinctl.py (ModeWinControl): Rewritten to use the new,
+	smarter, xmodewindow.
+
+	* modetitle.py: Formerly known as the last 1/3 of modewinctl.py
+
+Thu Sep 23 20:42:05 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* modewinctl.py: 
+	* views.py: Properties ICCCMified.
+
+	* focus.py (FocusHandler.focus_to_ptr): Set focus ICCCM style. 
+
+	* wmanager.py (Client.__init__): 
+	(Client.property_notify_event): Fetch WMHints.
+
+1999-09-21    <petli@cendio.se>
+
+	* modewinctl.py: Removed dependencies on WindowManager
+	class from ModeWinControl and put them in the child class
+	ModeClientControl instead.
+	ModeTitleClient now tracks window title changes.
+	
+
+1999-09-20    <petli@cendio.se>
+
+	* modewinctl.py: New file, furry features.
+
+1999-09-17    <petli@cendio.se>
+
+	* views.py (ViewHandler.view_has_client): Search for more than one
+	name, and beep if not found.
+
+	(ViewHandler.get_next_view_id, ViewHandler.store_views,
+	ViewHandler.fetch_views, ViewHandler.leave_view,
+	WinConf.get_tuple, View.__init__, View.store_winconf,
+	View.fetch_winconf, View.leave, ViewHandler.__init__,
+	ViewHandler.clear_views):
+	Store view configuration in properties to make it possible to
+	recreate the views when plwm is restarted.
+	
+	* cycle.py (CycleUnmapped.end): 
+	(CycleMapped.mark): Use Client.warppointer.
+
+	* wmanager.py (Client.warppointer): Written.
+
+	* moveresize.py (MoveResize.end): Pointer didn't move with the
+	window if its coordinates was (0, 0).
+

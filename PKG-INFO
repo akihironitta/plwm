@@ -1,0 +1,23 @@
+Metadata-Version: 1.0
+Name: PLWM
+Version: 2.7rc1
+Summary: Modularized X window manager for keyboard-loving programmers
+Home-page: http://plwm.sourceforge.net/
+Author: Mike Meyer
+Author-email: mwm@mired.org
+License: GPL
+Download-URL: http://sourceforge.net/projects/plwm/files/
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: X11 Applications
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Desktop Environment :: Window Managers
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: User Interfaces

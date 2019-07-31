@@ -1,0 +1,52 @@
+2001-01-14    <petli@cendio.se>
+
+	* inspect_plwm.py: PLWM inspect client program.  Reads expressions
+	like a Python intepreter, but sends them to a running PLWM for
+	evaluation.
+
+2001-01-11    <petli@cendio.se>
+
+	* wmm.py (readrc): Update append calls to Python 2.0 semantics.
+
+Thu Feb  3 16:29:52 2000  Peter Liljenberg  <petli@cendio.se>
+
+	* xmodewin.py (ModeWindow.__init__): 
+	* wmm.py (Main.__init__): More stable font loading: if the desired
+	font can't be loaded 'fixed' is loaded.  Previously the programs
+	crashed merrily instead.
+
+	(readrc): Don't die when .wmmrc can't be read, provide some
+	reasonable default buttons instead.
+
+1999-10-04    <petli@cendio.se>
+
+	* xmodewin.py (ModeWindow.handle_event): Use resources and options
+	to set colors and fonts etc.
+
+	* xmwbiff.py: Check for both old and new mail in inbox.  Use
+	resources to configure strings.
+
+1999-09-27    <petli@cendio.se>
+
+	* xmodewin.py: Rewritten: put much more intelligence in
+	xmodewindow, and simplify for clients.
+	
+	* xmwclock.py: 
+	* xmwbiff.py: Rewritten to handle new xmodewin.
+
+Thu Sep 23 21:00:38 1999  Peter Liljenberg  <petli@cendio.se>
+
+	* xmwbiff.py: 
+	* xmwclock.py: 
+	* xmodewin.py: Properties ICCCM:ified.
+
+1999-09-21    <petli@cendio.se>
+
+	* xmwbiff.py: Small biff for the mode window.
+
+	* xmwclock.py: Small clock in the mode window.
+
+1999-09-20    <petli@cendio.se>
+
+	* xmodewin.py: Emacs-styled mode-line window.  Very versatile.
+
